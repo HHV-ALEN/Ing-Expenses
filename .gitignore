@@ -1,0 +1,20 @@
+# Ignorar configuraciones del sistema y archivos personales
+/.gitconfig
+/.lesshst
+/.viminfo
+/.vscode/
+/AppData/
+/Contacts/
+/Desktop/
+/Downloads/
+/Favorites/
+/Links/
+/Music/
+/NTUSER.DAT*
+/OneDrive/
+/Pictures/
+/Saved Games/
+/Searches/
+/Videos/
+*.LOG*
+*.ini
