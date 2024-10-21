@@ -1,0 +1,6 @@
+uploads/
+*.log
+vendor/
+composer.lock
+*.zip
+*.tar.gz
