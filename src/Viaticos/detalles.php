@@ -1,318 +1,269 @@
-<?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+<?php 
+include '../../resources/config/db.php';
 session_start();
-include ('../../resources/config/db.php');
+$Id_Viatico = $_GET['id'];
 
-if (!isset($_SESSION['ID'])) {
-    // La sesión ha caducado o el usuario no ha iniciado sesión
-    session_unset(); // Elimina todas las variables de sesión
-    session_destroy(); // Destruye la sesión
+// Obtener detalles del viático
+$sql = "SELECT * FROM viaticos WHERE Id = $Id_Viatico";
+$result = $conn->query($sql);
+$row = $result->fetch_assoc();
+$Solicitante = $row['Solicitante'];
+$Fecha_Salida = $row['Fecha_Salida'];
+$Hora_Salida = $row['Hora_Salida'];
+$Fecha_Regreso = $row['Fecha_Regreso'];
+$Hora_Regreso = $row['Hora_Regreso'];
+$Orden_Venta = $row['Orden_Venta'];
+$Codigo = $row['Codigo'];
+$Nombre_Proyecto = $row['Nombre_Proyecto'];
+$Destino = $row['Destino'];
+$Total = $row['Total'];
+$Estado = $row['Estado'];
+$Fecha_Registro = $row['Fecha_Registro'];
 
-    header('Location: ../../index.php'); // Redirige al formulario de inicio de sesión
-    exit();
-}
-$id_user = $_SESSION['ID'];
-$Puesto = $_SESSION['Position'];
-$id_viatico = $_GET['id_viatico'];
+// Obtener información del gerente
+$sql_names = "SELECT * FROM usuarios WHERE Nombre = '$Solicitante'";
+$result = $conn->query($sql_names);
+$row = $result->fetch_assoc();
+$nombreGerente = $row['Gerente'];
 
-//echo "<script>console.log('Debug Objects - ID: " . $id_viatico . "' );</script>";
-//echo "<script>console.log('Debug Objects - ID: " . $id_user . "' );</script>";
-
-//$sql = "SELECT * FROM viaticos WHERE Id = $id_viatico";
-
-$sql_Extend = "SELECT v.*, u.Nombre, u.Gerente FROM viaticos v INNER JOIN usuarios u ON v.Id_Usuario = u.Id WHERE v.Id = $id_viatico";
-
-$result = $conn->query($sql_Extend);
-
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $folio = $row['Id'];
-    $Id_usuario = $row['Id_Usuario'];
-    $fechaSolicitud = $row['Fecha_Solicitud'];
-    $fechaSalida = $row['Fecha_Salida'];
-    $fechaRegreso = $row['Fecha_Regreso'];
-    $Hora_Salida = $row['Hora_Salida'];
-    $Hora_Regreso = $row['Hora_Regreso'];
-    $nombreSolicitante = $row['Nombre'];
-    $nombreGerente = $row['Gerente'];
-    $destino = $row['Destino'];
-    $motivo = $row['Motivo'];
-    $estado = $row['Estado'];
-    $Hospedaje = $row['Hospedaje'];
-    $Alimentacion = $row['Alimentacion'];
-    $Casetas = $row['Casetas'];
-    $Gasolina = $row['Gasolina'];
-    $Vuelos = $row['Vuelos'];
-    $Transporte = $row['Transporte'];
-    $Estacionamiento = $row['Estacionamiento'];
-    $Total = $row['Total'];
-} else {
-    //echo "0 results";
+// Obtener conceptos
+$sql_conceptos = "SELECT * FROM conceptos WHERE Id_Viatico = $Id_Viatico";
+/// Generar un arreglo que guarde los conceptos y sus montos | Ejemplo: ['Hospedaje' => 1000, 'Casetas' => 500]
+// Atributos de la tabla = 'Concepto' y 'Monto'
+$conceptos = [];
+$result = $conn->query($sql_conceptos);
+while ($row = $result->fetch_assoc()) {
+    $conceptos[$row['Concepto']] = $row['Monto'];
 }
 
-$TotalDePersonasEnElViatico = 1;
+// Obtener Información del destino
+$sql_destino = "SELECT * FROM destino WHERE Id_Viatico = $Id_Viatico";
+// Genera un arreglo que guarde la información del destino | Ejemplo: ['Estado' => 'Jalisco', 'Ciudad' => 'Zapopan']
+$destino = [];
+$result = $conn->query($sql_destino);
+while ($row = $result->fetch_assoc()) {
+    $destino['Estado'] = $row['Estado'];
+    $destino['Ciudad'] = $row['Ciudad'];
+}
 
-$sql_acompanantes = "SELECT * FROM acompanantes WHERE Id_Viatico = $id_viatico";
-$result_acompanantes = $conn->query($sql_acompanantes);
-
+// Obtener información de los acompañantes
+$sql_acompanantes = "SELECT * FROM acompanantes WHERE Id_Viatico = $Id_Viatico";
+// Genera un arreglo que guarde la información de los acompañantes | Ejemplo: ['Nombre' => 'Juan Pérez', 'Puesto' => 'Desarrollador']
 $acompanantes = [];
-
-if ($result_acompanantes->num_rows > 0) {
-    while ($row = $result_acompanantes->fetch_assoc()) {
-        $acompanantes[] = $row['Nombre'];
-        $TotalDePersonasEnElViatico++;
-    }
-} else {
-    $acompanantes[] = 'Ninguno';
-}
-///echo "<script>console.log('Debug Objects - Estado: " . $estado . "' );</script>";
-
-
-$sql_ruta = "SELECT * FROM destino WHERE Id_Viatico = $id_viatico";
-$result_ruta = $conn->query($sql_ruta);
-
-$ciudades = [];
-
-
-if ($result_ruta->num_rows > 0) {
-    while ($row = $result_ruta->fetch_assoc()) {
-        $ciudades[] = $row['Ciudad'];
-    }
-} else {
-    /// echo "0 results";
+$result = $conn->query($sql_acompanantes);
+while ($row = $result->fetch_assoc()) {
+    $acompanantes[] = [
+        'Nombre' => $row['Nombre']
+    ];
 }
 
-/// Traer la información de los clientes registrados
-$sql_clientes = "SELECT * FROM clientes WHERE Id_Viatico = $folio";
-$result_clientes = $conn->query($sql_clientes);
-/// Inicializar los arrays
+// Obtener información de los clientes
+$sql_clientes = "SELECT * FROM clientes WHERE Id_Viatico = $Id_Viatico";
+// Genera un arreglo que guarde la información de los clientes | Ejemplo: ['Nombre' => 'IBM', 'Motivo' => 'Soporte', 'Fecha' => '2021-12-31']
 $clientes = [];
-$motivos = [];
-$fechas = [];
-
-if ($result_clientes->num_rows > 0) {
-    while ($row = $result_clientes->fetch_assoc()) {
-        $clientes[] = $row['Nombre'];
-        $motivos[] = $row['Motivo'];
-        $fechas[] = $row['Fecha'];
-    }
-} else {
-    $clientes[] = 'Ninguno';
-    $motivos[] = 'Ninguno';
-    $fechas[] = 'Ninguno';
+$result = $conn->query($sql_clientes);
+while ($row = $result->fetch_assoc()) {
+    $clientes[] = [
+        'Nombre' => $row['Nombre'],
+        'Motivo' => $row['Motivo'],
+        'Fecha' => $row['Fecha']
+    ];
 }
 
-// Convertir los arrays a cadenas de texto para la visualización
-$clientes_str = htmlspecialchars(implode(", ", $clientes), ENT_QUOTES, 'UTF-8');
-$motivos_str = htmlspecialchars(implode(", ", $motivos), ENT_QUOTES, 'UTF-8');
-$fechas_str = htmlspecialchars(implode(", ", $fechas), ENT_QUOTES, 'UTF-8');
+// Obtener Información de la tabla verificacion
+$sql_verificacion = "SELECT * FROM verificacion WHERE Id_Relacionado = $Id_Viatico AND Tipo = 'Viatico'";
+$result = $conn->query($sql_verificacion);
+$row = $result->fetch_assoc();
+$Aceptado_Gerente = $row['Aceptado_Gerente'];
+$Aceptado_Control = $row['Aceptado_Control'];
 
 
+switch ($Aceptado_Gerente) {
+    case 'Pendiente':
+        $Aceptado_Gerente = '<span class="badge bg-warning">Pendiente</span>';
+        break;
+    case 'Aceptado':
+        $Aceptado_Gerente = '<span class="badge bg-success">Aceptado</span>';
+        break;
+    case 'Rechazado':
+        $Aceptado_Gerente = '<span class="badge bg-danger">Rechazado</span>';
+        break;
+    default:
+        $Aceptado_Gerente = '<span class="badge bg-warning">Pendiente</span>';
+        break;
+}
+
+switch ($Aceptado_Control) {
+    case 'Pendiente':
+        $Aceptado_Control = '<span class="badge bg-warning">Pendiente</span>';
+        break;
+    case 'Aceptado':
+        $Aceptado_Control = '<span class="badge bg-success">Aceptado</span>';
+        break;
+    case 'Rechazado':
+        $Aceptado_Control = '<span class="badge bg-danger">Rechazado</span>';
+        break;
+    default:
+        $Aceptado_Control = '<span class="badge bg-warning">Pendiente</span>';
+        break;
+}
 ?>
+
 <!DOCTYPE html>
-<html>
-
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Detalles de la solicitud</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles</title>
     <link rel="shortcut icon" href="/resources/img/logo-icon.png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <style>
-        body,
-        html {
-            height: 100%;
-            margin: 0;
-        }
 
-        .bg {
-            background-image: url('../../resources/img/FONDONEGRO.png');
-            height: 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 20px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 100%;
-        }
-
-        .card-header-custom {
-            background-color: #3b4ba1;
-            color: white;
-        }
-
-        @media (max-width: 991.98px) {
-            .navbar-nav .nav-link {
-                text-align: center;
-                border-bottom: 1px solid #e9ecef;
-                padding: 10px 0;
-                width: 100%;
-            }
-
-            .navbar-nav .nav-link:last-child {
-                border-bottom: none;
-            }
-
-            .navbar-nav .dropdown-divider {
-                display: none;
-            }
-
-            .navbar-collapse {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 100%;
-            }
-
-            .navbar-nav {
-                width: 100%;
-            }
-        }
-    </style>
 </head>
-
 <body>
-    <!-- Inicio de la barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a href="../Users/index.php"><img src="../../resources/img/Alen.png" alt="ALEN Viáticos" class="img-fluid"
-                    style="padding: 5px; height: 47px;"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <?php
-                    if ($_SESSION['Position'] == 'Admin' || $_SESSION['Position'] == 'Control') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/ListadoViaticos.php">Listado Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Control/listadoReembolsos.php">Reembolsos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/verificacionEvidencias.php">Verificación de Evidencias</a>
-                        </li>';
-                    } elseif ($_SESSION['Position'] == 'Empleado') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misReembolsos.php">Mis Reembolsos</a>
-                        </li>';
-                    } elseif ($_SESSION['Position'] == 'Gerente') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item ">
-                            <a class="nav-link" href="../Viaticos/misReembolsos.php">Mis Reembolsos</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                A mi cargo
-                            </a>
-                            <ul class="dropdown-menu text-center" aria-labelledby="navbarDropdown">
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/ViaticosACargo.php">Solicitudes</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/enEvidencia.php">Evidencias</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/reembolsosACargo.php">Reembolsos</a></li>
-                                <li class="dropdown-divider"></li>
-                            </ul>
-                        </li>';
-                    }
-                    ?>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../perfil.php"><?php echo $_SESSION['Name'] ?></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../../index.php">Salir</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <!-- Fin de la barra de navegación -->
+    <?php include '../../src/navbar.php'?>
+
+    <!-- Tarjeta para el usuario Gerente y Control para aceptar o rechazar el viático -->
+     <?php
+
+     /// Obtener información de la Tabla verificación para mostrar los botones de aceptar o rechazar
+
+     $Sql_Verificadores = "SELECT * FROM verificacion WHERE Id_Relacionado = $Id_Viatico AND Tipo = 'Viatico'";
+        $Result_Verificadores = $conn->query($Sql_Verificadores);
+        $Row_Verificadores = $Result_Verificadores->fetch_assoc();
+        $Aceptado_Gerente = $Row_Verificadores['Aceptado_Gerente'];
+        $Aceptado_Control = $Row_Verificadores['Aceptado_Control'];
+        
+        echo "<script>console.log('Debug Objects: " . $Aceptado_Gerente . "' );</script>";
+
+
+        if ($Aceptado_Control == 'Pendiente' && $_SESSION['Position'] == 'Gerente') {
+            if (($_SESSION['Position'] == 'Gerente' || $_SESSION['Position'] == 'Control') && $Estado == 'Abierto') {
+                echo '<div class="container mt-5">
+        
+                <div class="card">
+                    <div class="card-header bg-outline-primary text-Dark">
+                        <h5 class="card-title text-center">Aceptación de la Solicitud - Estado:<strong> '. $Estado .' </strong></h5>
+                        
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+        
+                            <div class="col-md-6 text-center">
+                                <p><strong>Gerente:</strong> <span id="aceptadoGerente">'. $Aceptado_Gerente .'</span></p>
+        
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <p><strong>Control:</strong> <span id="aceptadoControl">'. $Aceptado_Control .'</span></p>
+                                </div>
+                        </div>
+                        <div class="mb-3 text-center">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    
+                                        <p>(Aun no aceptado por el Usuario Control)</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id='. $Id_Viatico .'&Estado=Rechazado" class="btn btn-danger btn-block">
+                                        Rechazar Solicitud
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                </div>
+            </div>';
+                }
+        } else {
+
+            if (($_SESSION['Position'] == 'Gerente' || $_SESSION['Position'] == 'Control') && $Estado == 'Abierto') {
+                echo '<div class="container mt-5">
+            
+                <div class="card">
+                    <div class="card-header bg-outline-primary text-Dark">
+                        <h5 class="card-title text-center">Aceptación de la Solicitud - Estado:<strong> '. $Estado .' </strong></h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+            
+                            <div class="col-md-6 text-center">
+                                <p><strong>Gerente:</strong> <span id="aceptadoGerente">'. $Aceptado_Gerente .'</span></p>
+                            </div>
+                            <div class="col-md-6 text-center">
+                                <p><strong>Control:</strong> <span id="aceptadoControl">'. $Aceptado_Control .'</span></p>
+                            </div>
+                        </div>
+                        <div class="mb-3 text-center">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id='. $Id_Viatico .'&Estado=Aceptado" class="btn btn-success btn-block">
+                                        Aceptar Solicitud
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id='. $Id_Viatico .'&Estado=Rechazado" class="btn btn-danger btn-block">
+                                        Rechazar Solicitud
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>';
+            }
+            
+
+
+        }
+     ?>
 
     <div class="container mt-5">
         <div class="row">
-            <div class="col-md-6 mb-3">
+        <!-- Card de la parte de Izquierda -->
+        <div class="col-md-6 mb-3">
                 <div class="card">
-                    <?php
+                <?php
                     // PHP code to determine the class based on the status
                     $headerClass = ''; // Default class
                     
-                    switch ($estado) {
+                    switch ($Estado) {
                         case 'Abierto':
-                            $headerClass = 'bg-white text-dark';
+                            $headerClass = 'bg-primary text-white';
+                            $ButtonColor = 'btn btn-warning';
                             break;
-                        case 'Aceptada':
+                        case 'Aceptado':
                             $headerClass = 'bg-success';
+                            $ButtonColor = 'btn btn-warning';
                             break;
                         case 'Rechazado':
                             $headerClass = 'bg-danger text-white';
+                            $ButtonColor = 'btn btn-warning';
                             break;
                         case 'Verificacion':
                             $headerClass = 'bg-warning';
+                            $ButtonColor = 'btn btn-success';
                             break;
-                        case 'Fuera de Periodo':
+                        case 'FueraPeriodo':
                             $headerClass = 'bg-secondary';
+                            $ButtonColor = 'btn btn-warning';
                             break;
                         default:
                             $headerClass = 'bg-primary';
+                            $ButtonColor = 'btn btn-warning';
                             break;
                     }
                     ?>
-                    <div class="card-header <?php echo $headerClass ?> ">
-                        <strong>Folio de Solicitud (ID): </strong><span id="folio"><?= $folio ?></span>
+                    <div class="card-header card-header-custom <?php echo $headerClass ?> text-white">
+                        <h5 class="card-title text-center "><i class="fas fa-info-circle"></i> Detalles del Viático No.  <?php echo $Id_Viatico; ?></h5>
                     </div>
+
                     <div class="card-body">
                         <div class="mb-3">
-                            <p><strong>Fecha de Solicitud:</strong> <span id="fechaSolicitud"><?= $fechaSolicitud ?></span></p>
+                            <p><strong>Fecha de Solicitud:</strong> <span id="fechaSolicitud"><?= $Fecha_Registro ?></span></p>
                             <p><strong>Días Solicitados:</strong> <span><?php
-                                $datetime1 = new DateTime($fechaSalida);
-                                $datetime2 = new DateTime($fechaRegreso);
+                                $datetime1 = new DateTime($Fecha_Salida);
+                                $datetime2 = new DateTime($Fecha_Regreso);
                                 $interval = $datetime1->diff($datetime2);
                                 $days = $interval->days; // Obtiene la diferencia en días
                                 
@@ -326,24 +277,24 @@ $fechas_str = htmlspecialchars(implode(", ", $fechas), ENT_QUOTES, 'UTF-8');
                             <div class="row">
                                 <div class="col-md-6">
                                     <p><strong>Fecha de Salida:</strong> <span
-                                            id="fechaSalida"><?= $fechaSalida ?></span></p>
+                                            id="fechaSalida"><?= $Fecha_Salida ?></span></p>
                                     <p><strong>Hora de Salida:</strong> <span id="horaSalida"><?= $Hora_Salida ?></span>
                                     </p>
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>Fecha de Regreso:</strong> <span
-                                            id="fechaRegreso"><?= $fechaRegreso ?></span></p>
+                                            id="fechaRegreso"><?= $Fecha_Regreso ?></span></p>
                                     <p><strong>Hora de Regreso:</strong> <span
                                             id="horaRegreso"><?= $Hora_Regreso ?></span></p>
                                 </div>
                             </div>
                         </div>
                         <hr>
-                        <div class="mb-3">
+                        <div class="mb-3 ">
                             <div class="row">
                                 <div class="col-md-6">
                                     <p><strong>Solicitante:</strong> <span id="fechaSalida"></span></p>
-                                    <p><?= $nombreSolicitante ?></p>
+                                    <p><?= $Solicitante ?></p>
                                     </p>
                                 </div>
                                 <div class="col-md-6">
@@ -352,206 +303,143 @@ $fechas_str = htmlspecialchars(implode(", ", $fechas), ENT_QUOTES, 'UTF-8');
                                 </div>
                             </div>
                         </div>
-                        <hr>
                         <div class="mb-3">
-                            <p><strong>Conceptos:</strong></p>
-                            <div class="row">
-                                <div class="col-md-5">
-                                    <p class="text-center"><strong>Hospedaje:</strong><br><?= $Hospedaje ?></p>
-                                    <p class="text-center"><strong>Casetas:</strong><br><?= $Casetas ?></p>
-                                </div>
-                                <div class="col-md-5">
-                                    <p class="text-center"><strong>Alimentación:</strong><br><?= $Alimentacion ?> </p>
-                                    <p class="text-center"><strong>Gasolina:</strong><br><?= $Gasolina ?> </p>
-                                </div>
-                                <div class="col-md-5">
-                                    <p class="text-center"><strong>Vuelos:</strong><br><?= $Vuelos ?> </p>
-                                    <p class="text-center"><strong>Transporte:</strong><br><?= $Transporte ?> </p>
-                                </div>
-                                <div class="col-md-5">
-                                    <p class="text-center"><strong>Estacionamiento:</strong><br><?= $Estacionamiento ?> </p>
-                                </div>
-                            </div>
+                            <!-- Mostrar los conceptos en una tabla -->
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    foreach ($conceptos as $concepto => $monto) {
+                                        echo "<tr>";
+                                        echo "<td>$concepto</td>";
+                                        echo "<td>$ $monto</td>";
+                                        echo "</tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
                             <hr>
-                            <div class="row">
-                                <div class="mb-3">
-                                    <p style="display: flex; align-items: center;">
+                            <div class="row text-center">
+                                <div class="mb-3 text-center">
+                                    <p class="text-center">
                                         <strong style="margin-right: 5px;">Monto Total Solicitado:</strong> 
-                                        <span><?= $Total ?></span>
+                                        <span>$ <?= $Total ?></span>
                                     </p>
                                 </div>
-
                             </div>
-
-
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 mb-3">
                 <div class="card">
-                    <div class="card-header <?php echo $headerClass ?> ">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Detalles de la Solicitud </strong><span id="estatus">(<?= $estado ?>)</span>
-
-                            </div>
-                            <div class="col-md-6">
-                                <!-- Descargar formato de solicitud -->
-                                <?php
-                                $Formato_query = "SELECT * FROM solicitudes WHERE Id_Viatico = $folio";
-                                $Formato_result = $conn->query($Formato_query);
-                                $row_Formato = $Formato_result->fetch_assoc();
-                                $FileName = $row_Formato['Nombre'];
-                                $path = '../../uploads/Files/' . $FileName;
-                                ?>
-                                <a href="<?php echo $path ?>" class="btn btn-success">Descargar Formato</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6 ">
-                                <p><strong>Destino:</strong> <span id="destino"><?= $destino ?></span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Ruta:</strong></p>
-                                <?php if (count($ciudades) > 0): ?>
-                                    <?php foreach ($ciudades as $ciudad): ?>
-                                        <p><?php echo htmlspecialchars($ciudad); ?></p>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <p>No hay ciudades en la ruta</p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+                    <div class="card-header card-header-custom <?php echo $headerClass ?> text-white">
+                        <h5 class="card-title text-center"><i class="fas fa-map-marker-alt"></i>Estado: <?php echo $Estado ?></h5>
                         <hr>
-                        <div class="mb-3">
-                            <div class="col-md-6">
-                                <p><strong>Clientes:</strong> <span id="cliente"><?= $clientes_str; ?></span></p>
-                                <p><strong>Motivos:</strong> <span id="motivo"><?= $motivos_str; ?></span></p>
-                                <p><strong>Fechas:</strong> <span id="fecha"><?= $fechas_str; ?></span></p>
-                            </div>
-
-                        </div>
-                        <hr>
-                        <div class="mb-3">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Total de Personas:</strong> <span
-                                            id="totalPersonas"><?= $TotalDePersonasEnElViatico ?></span></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Acompañantes: </strong></p>
-                                    <?php if (count($acompanantes) > 0 && $acompanantes[0] != 'Ninguno'): ?>
-                                        <?php foreach ($acompanantes as $nombre): ?>
-                                            <p>Nombre del Acompañante: <?php echo htmlspecialchars($nombre); ?></p>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <p>Nombre del Acompañante: Ninguno</p>
-                                    <?php endif; ?>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                        <hr>
-                        <div class="mb-3">
-                            <?php
-                            echo "Folio: " . $folio;
-                            if ($estado == 'Abierto' || $estado == 'Verificacion') {
-                                $query_Verificacion = "SELECT * FROM verificacion WHERE Id_Viatico = $folio";
-                                $result_Verificacion = $conn->query($query_Verificacion);
-                                $row_Verificacion = $result_Verificacion->fetch_assoc();
-                                $Aceptado_Gerente = $row_Verificacion['Aceptado_Gerente'];
-                                $Aceptado_Control = $row_Verificacion['Aceptado_Control'];
-                                $Gerente = $row_Verificacion['Gerente'];
-                                $Verificador = $row_Verificacion['Verificador'];
-
-                                if ($Aceptado_Gerente == "Aceptado" && $Gerente == $nombreGerente) {
-                                    ?>
-                                    <p><strong>Estado:</strong> <span id="estado"><?= $estado ?></span></p>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>Gerente:</strong> <input type="checkbox" checked></p>
-                                        </div>
-                                        <?php
-                                } else {
-                                    ?>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p><strong>Gerente:</strong> <input type="checkbox"></p>
-                                            </div>
-                                            <?php
-                                }
-                                if ($Aceptado_Control == "Aceptado" && $Verificador != '') {
-                                    ?>
-                                            <div class="col-md-6">
-                                                <p><strong>Control:</strong> <input type="checkbox" checked></p>
-                                            </div>
-                                            <?php
-                                } else {
-                                    ?>
-                                            <div class="col-md-6">
-                                                <p><strong>Control:</strong> <input type="checkbox"></p>
-                                            </div>
-                                            <?php
-                                }
-                            }
+                        <div class="text-center">
+                            <?php 
+                                /// Consultar Nombre del archivo para descagar
+                                $sql = "SELECT * FROM resumen_solicitud WHERE Id_Viatico = $Id_Viatico";
+                                $result = $conn->query($sql);
+                                $row = $result->fetch_assoc();
+                                $Nombre_Archivo = $row['Nombre'];
+                                $Ruta = '../../uploads/files/' . $Nombre_Archivo;
                             ?>
-
-                                </div>
-                            </div>
-
+                            <a href="<?php echo $Ruta ?>" class="btn <?php echo $ButtonColor ?> ">Descargar Formato</a>
                         </div>
                     </div>
-                    <br>
-
-                    <?php
                     
-                        if ($estado == 'Abierto') {
-                            if ($Puesto == 'Control' || $Puesto == 'Admin' || $Puesto == 'Gerente') {
-                                ?>
-                                <div class="card">
-                                    <div class="text-center card-header">
-                                        <strong>Seleccionar Respuesta:</strong>
-                                    </div>
-                                    <div class="card-body ">
-                                        <div class="text-center row">
-                                            <div class="col-md-6">
-                                                <a href='../../resources/Back/Viaticos/changeState.php?id_viatico=<?= $folio ?>&Respuesta=Aceptado'
-                                                    type="button" class="btn btn-outline-primary">
-                                                    Aceptar Solicitud
-                                                </a>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <a href='../../resources/Back/Viaticos/changeState.php?id_viatico=<?= $folio ?>&Respuesta=Rechazado'
-                                                    type="button" class="btn btn-outline-danger">
-                                                    Rechazar Solicitud
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <p><strong>Orden de Venta:</strong> <span><?= $Orden_Venta ?></span></p>
+                            <p><strong>Código:</strong> <span><?= $Codigo ?></span></p>
+                            <p><strong>Proyecto:</strong> <span><?= $Nombre_Proyecto ?></span></p>
+                            <p><strong>Destino:</strong> <span><?= $Destino ?></span></p>
+                        </div>
+                        <hr>
+                        <!-- mostrar el destino en una tabla -->
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Estado</th>
+                                    <th>Ciudad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><?php 
+                                    if (empty($destino['Estado'])) {
+                                        echo 'No especificado';
+                                    } else {
+                                        echo $destino['Estado'];
+                                    }
+                                    
+                                     ?></td>
+                                    <td><?php 
+                                    if (empty($destino['Ciudad'])) {
+                                        echo 'No especificado';
+                                    } else {
+                                        echo $destino['Ciudad'];
+                                    }
+                                     ?></td>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <hr>
+                        <div class="mb-3">
+                            <p><strong>Acompañantes:</strong></p>
+                            <ul>
                                 <?php
-                            }
-                        }
-                    
-                    ?>
+                                foreach ($acompanantes as $acompanante) {
+                                    echo "<li>" . $acompanante['Nombre'] . "</li>";
+                                }
+                                ?>
+                            </ul>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <p><strong>Clientes:</strong></p>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Motivo</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    foreach ($clientes as $cliente) {
+                                        echo "<tr>";
+                                        echo "<td>" . $cliente['Nombre'] . "</td>";
+                                        echo "<td>" . $cliente['Motivo'] . "</td>";
+                                        echo "<td>" . $cliente['Fecha'] . "</td>";
+                                        echo "</tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                            
+                        
+
+                    </div>
                 </div>
             </div>
+            
         </div>
     </div>
 
-    <br>
-
-    <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
 </body>
-
 </html>

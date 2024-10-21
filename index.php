@@ -15,7 +15,7 @@ if (isset($_GET['message']) && $_GET['message'] == 'session_expired') {
     <link rel="shortcut icon" href="/resources/img/logo-icon.png" />
     <style>
         .bg {
-            background-image: url('resources/img/bg.jpg');
+            background-image: url('resources/img/Inside/Main-Background.jpg');
             background-size: cover;
             background-position: center;
             height: 100vh;
@@ -25,7 +25,7 @@ if (isset($_GET['message']) && $_GET['message'] == 'session_expired') {
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.74);
         }
     </style>
 </head>
@@ -39,10 +39,10 @@ if (isset($_GET['message']) && $_GET['message'] == 'session_expired') {
                         <div class="card-body">
                             <div class="text-center">
                                 <br>
-                                <img src="resources/img/Logo_A.png" class="img-fluid mb-3" alt="Logo">
+                                <img src="resources/img/Inside/Logo-Login.png" class="img-fluid mb-3" alt="Logo">
                             </div>
                             <hr>
-                            <form action="src/Login/Login.php" method="POST">
+                            <form action="/resources/Login/Login.php" method="POST">
                                 <div class="form-group">
                                     <label for="username">Usuario:</label>
                                     <input type="text" class="form-control" id="username" name="username" required>
@@ -53,7 +53,7 @@ if (isset($_GET['message']) && $_GET['message'] == 'session_expired') {
                                 </div>
                                 <hr>
                                 <br>
-                                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+                                <button type="submit" class="btn btn-outline-primary btn-block">Ingresar</button>
                             </form>
                             <div class="text-center mt-3">
                                 <a href="forgot-password.php">¿Olvidaste tu contraseña?</a>

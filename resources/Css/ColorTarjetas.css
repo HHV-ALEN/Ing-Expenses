@@ -1,0 +1,19 @@
+/* Colores personalizados para las tarjetas */
+.card-pendiente {
+    background-color: rgba(255, 193, 7, 0.2); /* Amarillo suave */
+    border-left: 4px solid #ffc107; /* Bordes laterales para diferenciación */
+}
+
+.card-rechazado {
+    background-color: rgba(220, 53, 69, 0.2); /* Rojo suave */
+    border-left: 4px solid #dc3545;
+}
+
+.card-aceptado {
+    background-color: rgba(40, 167, 69, 0.2); /* Verde suave */
+    border-left: 4px solid #28a745;
+}
+
+.card-body {
+    color: #333; /* Asegúrate de que el texto sea oscuro y legible */
+}

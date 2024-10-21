@@ -1,811 +1,451 @@
 <?php
 session_start();
+require('../../resources/config/db.php');
 
-if (!isset($_SESSION['ID'])) {
-    // La sesión ha caducado o el usuario no ha iniciado sesión
-    session_unset(); // Elimina todas las variables de sesión
-    session_destroy(); // Destruye la sesión
-
-    header('Location: ../../index.php'); // Redirige al formulario de inicio de sesión
-    exit();
-}
-$id_viatico = $_GET['id_viatico'];
-include '../../resources/config/db.php';
-$sql = "SELECT * FROM viaticos WHERE Id = $id_viatico";
-
+$Id_Viatico = $_GET['id'];
+/// Obtener información del viático
+$sql = "SELECT * FROM viaticos WHERE Id = $Id_Viatico";
 $result = $conn->query($sql);
 $row = $result->fetch_assoc();
-$Id_Usuario = $row['Id_Usuario'];
-$fecha_salida = $row['Fecha_Salida'];
-$fecha_regreso = $row['Fecha_Regreso'];
-$hora_salida = $row['Hora_Salida'];
-$hora_regreso = $row['Hora_Regreso'];
-$cliente = $row['Cliente'];
-$motivo = $row['Motivo'];
-$estado = $row['Destino'];
-$Hospedaje = $row['Hospedaje'];
-$Gasolina = $row['Gasolina'];
-$Casetas = $row['Casetas'];
-$Alimentacion = $row['Alimentacion'];
-$Vuelos = $row['Vuelos'];
-$Transporte = $row['Transporte'];
-$Estacionamiento = $row['Estacionamiento'];
-$TotalViaticos = $row['Total'];
-$TotalDePersonasEnElViatico = 1;
+$Fecha_Salida = $row['Fecha_Salida'];
+$Hora_Salida = $row['Hora_Salida'];
+$Fecha_Regreso = $row['Fecha_Regreso'];
+$Hora_Regreso = $row['Hora_Regreso'];
+$Orden_Venta = $row['Orden_Venta'];
+$Codigo = $row['Codigo'];
+$Nombre_Proyecto = $row['Nombre_Proyecto'];
+$Estado = $row['Estado'];
 
-$sql_acompanantes = "SELECT * FROM acompanantes WHERE Id_Viatico = $id_viatico";
-$result_acompanantes = $conn->query($sql_acompanantes);
-$acompanantes = [];
-
-if ($result_acompanantes->num_rows > 0) {
-    while ($row_acompanantes = $result_acompanantes->fetch_assoc()) {
-        $acompanantes[] = [
-            'Id' => $row_acompanantes['Id'],
-            'Nombre' => $row_acompanantes['Nombre']
-        ];
-        $TotalDePersonasEnElViatico++;
-    }
-} else {
-    $acompanantes[] = ['id' => 0, 'Nombre' => ''];
-}
-// Pasar los datos de los acompañantes a JavaScript
-echo '<script>';
-echo 'var acompanantes = ' . json_encode($acompanantes) . ';';
-echo '</script>';
-
-// Consulta para obtener la información existente
-$query = "SELECT Estado, Ciudad FROM destino WHERE id_viatico = '$id_viatico'";
-$result = $conn->query($query);
-
-$ciudades = [];
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $ciudades[] = $row['Ciudad'];
-        $EstadoVistado = $row['Estado'];
-    }
-}
-
-$id_viatico = $_GET['id_viatico']; // O la forma en que obtengas el ID del viático
-$sql_clientes = "SELECT * FROM clientes WHERE Id_Viatico = $id_viatico";
-$result_clientes = $conn->query($sql_clientes);
-
+/// Obtener información de los clientes
+$sql = "SELECT * FROM clientes WHERE Id_Viatico = $Id_Viatico";
+$result = $conn->query($sql);
 $clientes = [];
+while ($row = $result->fetch_assoc()) {
+    $clientes[] = $row;
+}
 
-if ($result_clientes->num_rows > 0) {
-    while ($row = $result_clientes->fetch_assoc()) {
-        $clientes[] = $row;
+
+$estado_a_visitar = '';
+/// Obtener información de las ciudades
+$sql = "SELECT * FROM destino WHERE Id_Viatico = $Id_Viatico";
+$result = $conn->query($sql);
+$ciudades = [];
+while ($row = $result->fetch_assoc()) {
+    $ciudades[] = $row['Ciudad'];
+    $estado_a_visitar .= $row['Estado'] . ', ';
+}
+/// Obtener información de los acompañantes
+$sql = "SELECT * FROM acompanantes WHERE Id_Viatico = $Id_Viatico";
+$result = $conn->query($sql);
+$acompanantes = [];
+while ($row = $result->fetch_assoc()) {
+    $acompanantes[] = $row;
+}
+
+// Obtener información de los conceptos
+$sql = "SELECT * FROM conceptos WHERE Id_Viatico = $Id_Viatico";
+$result = $conn->query($sql);
+while ($row = $result->fetch_assoc()) {
+    //echo "<br>----------------------------------<br>";
+    //echo "<br>Concepto: " . $row['Concepto'];
+    //echo "<br>Monto: " . $row['Monto'];
+    //echo "<br>----------------------------------<br>";
+
+    // Ver si el concepto MATERIALES está en la base de datos
+    if (trim(strtoupper($row['Concepto'])) == 'MATERIALES') {
+        //echo "<br>ENCONTRÉ MATERIALES!<br>";
+    }
+
+    // Lógica de tu código
+    switch (trim(strtoupper($row['Concepto']))) {
+        case 'MATERIALES':
+            $MATERIALES = $row['Monto'];
+            break;
+        case 'GASTOS MÉDICOS':
+            $GASTOS_MEDICOS = $row['Monto'];
+            break;
+        case 'EQUIPOS':
+            $EQUIPOS = $row['Monto'];
+            break;
+        case 'HOSPEDAJE':
+            $HOSPEDAJE = $row['Monto'];
+            break;
+        case 'VUELOS':
+            $VUELOS = $row['Monto'];
+            break;
+        case 'ALIMENTACION':
+            $ALIMENTACION = $row['Monto'];
+            break;
+        case 'TRANSPORTE':
+            $TRANSPORTE = $row['Monto'];
+            break;
+        case 'ESTACIONAMIENTO':
+            $ESTACIONAMIENTO = $row['Monto'];
+            break;
+        case 'GASOLINA':
+            $GASOLINA = $row['Monto'];
+            break;
+        case 'CASETAS':
+            $CASETAS = $row['Monto'];
+            break;
+        default:
+            $Nombre_Concepto = $row['Concepto'];
+            $Otro = $row['Monto'];
+            break;
     }
 }
 
-// Generar el HTML para cada cliente
-$clientesHTML = '';
-foreach ($clientes as $index => $cliente) {
-    $index++; // Para empezar desde 1
-    $clientesHTML .= "
-        <div class='row mb-3' id='cliente$index'>
-            <div class='col-md-6 mb-3'>
-                <label for='Cliente$index' class='form-label'>Nombre Del cliente:</label>
-                <input type='text' class='form-control' id='Cliente$index' name='Cliente$index' value='{$cliente['Nombre']}' required>
-                <br>
-            </div>
-            <div class='col-md-6 mb-3'>
-                <label for='Motivo$index' class='form-label'>Motivo de Visita:</label>
-                <select class='form-select' id='Motivo$index' name='Motivo$index' required>
-                    <option value='Visita' " . ($cliente['Motivo'] == 'Visita' ? 'selected' : '') . ">Visita</option>
-                    <option value='Capacitacion' " . ($cliente['Motivo'] == 'Capacitacion' ? 'selected' : '') . ">Capacitación</option>
-                    <option value='Reunion' " . ($cliente['Motivo'] == 'Reunion' ? 'selected' : '') . ">Reunión</option>
-                    <option value='Otro' " . ($cliente['Motivo'] == 'Otro' ? 'selected' : '') . ">Otro</option>
-                </select>
-                <br>
-            </div>
-            <div class='col-md-6 mb-3'>
-                <label for='FechaDeVisita$index' class='form-label'>Fecha de Visita:</label>
-                <select class='form-select fechaVisita' id='FechaDeVisita$index' name='FechaDeVisita$index' required>
-                    <option value='{$cliente['Fecha']}'>{$cliente['Fecha']}</option>
-                </select>
-                <br>
-            </div>
-            <div class='col-md-6 mb-3'>
-                <button type='button' class='btn btn-danger' onclick=\"eliminarCliente('cliente$index')\">Eliminar Cliente</button>
-            </div>
-        </div>";
-}
 
-echo "<script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('clientesContainer').innerHTML = `$clientesHTML`;
-        });
-    </script>";
-
-
+/// iMPRIMIR EL ARREGLO DE CONCEPTOS CON SALTADO DE LINEA ENTRE CADA CONCEPTO
+//echo "<pre>";
+//print_r($conceptos);
+//echo "</pre>";
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Editar la solicitud</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edicion de Viáticos</title>
     <link rel="shortcut icon" href="/resources/img/logo-icon.png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
-        body,
-        html {
-            height: 100%;
-            margin: 0;
+        /* Ajusta el tamaño del select */
+        .codigo-prefix {
+            flex: 0 0 25%;
+            /* Establece el ancho del select al 25% del contenedor */
+            max-width: 80px;
+            /* Ancho máximo del select */
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
         }
 
-        .bg {
-            background-image: url('../../resources/img/FONDONEGRO.png');
-            height: 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 20px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 100%;
-        }
-
-        .card-header-custom {
-            background-color: #3b4ba1;
-            color: white;
-        }
-
-        @media (max-width: 991.98px) {
-            .navbar-nav .nav-link {
-                text-align: center;
-                border-bottom: 1px solid #e9ecef;
-                padding: 10px 0;
-                width: 100%;
-            }
-
-            .navbar-nav .nav-link:last-child {
-                border-bottom: none;
-            }
-
-            .navbar-nav .dropdown-divider {
-                display: none;
-            }
-
-            .navbar-collapse {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 100%;
-            }
-
-            .navbar-nav {
-                width: 100%;
-            }
+        /* Ajusta el tamaño del input para que ocupe el resto del espacio */
+        .codigo-input {
+            flex: 1;
+            /* Ocupa el resto del espacio disponible */
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
         }
     </style>
 </head>
 
 <body>
-    <!-- Inicio de la barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a href="../Users/index.php"><img src="../../resources/img/Alen.png" alt="ALEN Viáticos" class="img-fluid"
-                    style="padding: 5px; height: 47px;"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <?php
-                    if ($_SESSION['Position'] == 'Admin' || $_SESSION['Position'] == 'Control') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/ListadoViaticos.php">Listado Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Control/listadoReembolsos.php">Reembolsos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/verificacionEvidencias.php">Verificación de Evidencias</a>
-                        </li>';
-                    } elseif ($_SESSION['Position'] == 'Empleado') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misReembolsos.php">Mis Reembolsos</a>
-                        </li>';
-                    } elseif ($_SESSION['Position'] == 'Gerente') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item ">
-                            <a class="nav-link" href="../Viaticos/misReembolsos.php">Mis Reembolsos</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                A mi cargo
-                            </a>
-                            <ul class="dropdown-menu text-center" aria-labelledby="navbarDropdown">
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/ViaticosACargo.php">Solicitudes</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/enEvidencia.php">Evidencias</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/reembolsosACargo.php">Reembolsos</a></li>
-                                <li class="dropdown-divider"></li>
-                            </ul>
-                        </li>';
-                    }
-                    ?>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../perfil.php"><?php echo $_SESSION['Name'] ?></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../../index.php">Salir</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <!-- Fin de la barra de navegación -->
-    <br>
-    <div class="container"></div>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card card-custom">
-                <div class="card-header card-header-custom">
-                    <h5 class="card-title">Solicitud de Viático con folio: <?php echo $id_viatico ?></h5>
-                </div>
-                <div class="card-body">
-                    <form action="../../resources/Back/Viaticos/edit.php" method="POST">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="hidden" id="id_usuario" name="id_usuario"
-                                    value="<?php echo $Id_Usuario ?>">
-                                <input type="hidden" id="id_viatico" name="id_viatico">
-                                <input type="hidden" id="id" name="id" value="<?php echo $id_viatico ?>">
-                                <label for="FechaSalida" class="form-label">Fecha de Salida:</label>
-                                <input type="date" class="form-control" id="FechaSalida" name="FechaSalida"
-                                    value="<?php echo $fecha_salida ?>" required>
-                                <br>
-                                <label for="HoraSalida" class="form-label">Hora de Salida:</label>
-                                <input type="time" class="form-control" id="HoraSalida" name="HoraSalida"
-                                    value="<?php echo $hora_salida ?>" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="FechaRegreso" class="form-label">Fecha de Regreso:</label>
-                                <input type="date" class="form-control" id="FechaRegreso" name="FechaRegreso"
-                                    value="<?php echo $fecha_regreso ?>" required>
-                                <br>
-                                <label for="HoraSalida" class="form-label">Hora de Regreso:</label>
-                                <input type="time" class="form-control" id="HoraRegreso" name="HoraRegreso"
-                                    value="<?php echo $hora_regreso ?>" required>
-                            </div>
-                            <p id="diasDiferencia">Días Solicitados: </p>
-                        </div>
+    <?php include '../navbar.php'; ?>
 
-                        <hr>
-                        <div class="row">
-                            <div id="clientesContainer">
-                                    <!-- Aquí se agregarán dinámicamente los campos de cliente -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-black text-white text-center">
+                        <h5>Registro de solicitud de viático - No. <?php echo $Id_Viatico; ?></h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/resources/Back/Viaticos/EditViatico.php" method="POST">
+                            <!-- Fecha de salida y regreso -->
+                            <input type="hidden" name="Id_Viatico" value="<?php echo $Id_Viatico; ?>">
+                            <div class="row my-2">
+                                <div class="col-md-6 text-center">
+                                    <label for="fechaSalida" class="form-label"><strong>Fecha de
+                                            Salida:</strong></label>
+                                    <input type="date" class="form-control" id="fechaSalida" name="Fecha_Salida"
+                                        value="<?php echo $Fecha_Salida ?>">
                                 </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="fechaRegreso" class="form-label"><strong>Fecha de
+                                            Regreso:</strong></label>
+                                    <input type="date" class="form-control" id="fechaRegreso" name="Fecha_Regreso"
+                                        value="<?php echo $Fecha_Regreso ?>">
+                                </div>
+                            </div>
+                            <!-- Hora de salida y regreso -->
+                            <div class="row my-4">
+                                <div class="col-md-6 text-center">
+                                    <label for="horaSalida" class="form-label"><strong>Hora de Salida:</strong></label>
+                                    <input type="time" class="form-control" id="horaSalida" name="horaSalida"
+                                        value="<?php echo $Hora_Salida ?>">
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="horaRegreso" class="form-label"><strong>Hora de
+                                            Regreso:</strong></label>
+                                    <input type="time" class="form-control" id="horaRegreso" name="horaRegreso"
+                                        value="<?php echo $Hora_Regreso ?>">
+                                </div>
+                            </div>
+                            <!-- Datos para la creación del FOLIO -->
+                            <div class="row my-4">
+                                <div class="col-md-6 text-center">
+                                    <label for="ordenVenta" class="form-label"><strong>Orden de venta:</strong></label>
+                                    <input type="number" placeholder="XXXX-XXXX" class="form-control" id="ordenVenta"
+                                        name="ordenVenta" value="<?php echo $Orden_Venta ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="codigo" class="form-label"><strong>Código:</strong></label>
+                                    <div class="input-group">
+                                        <select class="form-select form-select-sm codigo-prefix" id="codigoPrefix"
+                                            name="codigoPrefix" aria-label="Seleccionar código">
+                                            <?php
+                                            /// Si los primeros 3 caracteres del codigo son PYE, selected a esa opcion
+                                            if (substr($Codigo, 0, 3) === 'PYE') {
+                                                echo '<option value="PYE" selected>PYE</option>';
+                                                echo '<option value="PYI">PYI</option>';
+                                            } else {
+                                                echo '<option value="PYE">PYE</option>';
+                                                echo '<option value="PYI" selected>PYI</option>';
+                                            }
 
-                                <button type="button" id="agregarCliente" class="btn btn-primary">Agregar Cliente</button>
+                                            ?>
+                                        </select>
+                                        <input type="text" class="form-control codigo-input" id="codigo" name="codigo"
+                                            placeholder="Ingresar código" value="<?php
+                                            /// Imprimir los siguientes caracteres a partir del '-'
+                                            echo substr($Codigo, strpos($Codigo, '-') + 1);
+                                            ?>" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-center">
+                                    <label for="nombreProyecto" class="form-label"><strong>Nombre del
+                                            proyecto:</strong></label>
+                                    <input type="text" placeholder="Ingrese Nombre del proyecto" class="form-control"
+                                        onkeyup="javascript:this.value=this.value.toUpperCase();" id="nombreProyecto"
+                                        name="nombreProyecto" value="<?php echo $Nombre_Proyecto ?>" required>
+                                </div>
+                            </div>
+                            <hr>
 
-                        <hr>
-                        <div class="row mb-3" id="ciudad1-container">
-                            <div class="col-sm-6">
-                                <lablel for="Estado" class="col-form-label">Estado:</lablel>
-                                <input type="text" class="form-control" id="Estado" value="<?php echo $estado ?>"
-                                    name="Estado" required>
-                                <label for="Ciudad1" class="col-form-label">Ciudad:</label>
+                            <div class="text-center">
+                                <label for="clientes" class="form-label text-center"><strong>Clientes a
+                                        visitar:</strong></label>
                             </div>
-                            <div class="col-sm-10">
-                                <input type="text" class="form-control" id="Ciudad1" name="Ciudad[]"
-                                    value="<?php echo isset($ciudades[0]) ? htmlspecialchars($ciudades[0]) : ''; ?>"
-                                    required>
-                            </div>
-                            <div class="col-sm-2">
-                                <button type="button" class="btn btn-danger btn-remove"
-                                    onclick="eliminarCiudad(this)">Eliminar</button>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div id="ciudades-adicionales">
-                                <?php for ($i = 1; $i < count($ciudades); $i++): ?>
-                                    <div class="row mb-3">
-                                        <div class="col-sm-4">
-                                            <label for="Ciudad<?php echo $i + 1; ?>" class="col-form-label">Ciudad
-                                                Extra:</label>
+
+                            <?php
+                            // Asegurarse de que hay al menos un cliente en $clientes
+                            if (!empty($clientes)) {
+                                // Mostrar los clientes existentes en los campos del formulario
+                                foreach ($clientes as $index => $cliente) {
+                                    ?>
+                                    <div class="row mt-3" id="cliente_<?php echo $index + 1; ?>">
+                                        <div class="col-md-6 text-center">
+                                            <label for="Nombre_Cliente_<?php echo $index + 1; ?>"
+                                                class="form-label"><strong>Nombre:</strong></label>
+                                            <input type="text" class="form-control"
+                                                id="Nombre_Cliente_<?php echo $index + 1; ?>"
+                                                name="clientes[<?php echo $index; ?>][nombre]"
+                                                value="<?php echo htmlspecialchars($cliente['Nombre']); ?>" required>
                                         </div>
-                                        <div class="col-sm-6">
-                                            <input type="text" class="form-control" id="Ciudad<?php echo $i + 1; ?>"
-                                                name="Ciudad[]" value="<?php echo htmlspecialchars($ciudades[$i]); ?>"
+                                        <div class="col-md-6 text-center">
+                                            <label for="Motivo_Cliente_<?php echo $index + 1; ?>"
+                                                class="form-label"><strong>Motivo:</strong></label>
+                                            <select class="form-select motivo-cliente" id="Motivo_Cliente_<?php echo $index + 1; ?>"
+                                                name="clientes[<?php echo $index; ?>][motivo]" required>
+                                                <option value="">Seleccione una opción</option>
+                                                <option value="Hospedaje" <?php echo ($cliente['Motivo'] == 'Hospedaje') ? 'selected' : ''; ?>>Hospedaje</option>
+                                                <option value="Vuelos" <?php echo ($cliente['Motivo'] == 'Vuelos') ? 'selected' : ''; ?>>Vuelos</option>
+                                                <option value="Alimentación" <?php echo ($cliente['Motivo'] == 'Alimentación') ? 'selected' : ''; ?>>Alimentación</option>
+                                                <option value="Transporte" <?php echo ($cliente['Motivo'] == 'Transporte') ? 'selected' : ''; ?>>Transporte</option>
+                                                <option value="Estacionamiento" <?php echo ($cliente['Motivo'] == 'Estacionamiento') ? 'selected' : ''; ?>>
+                                                    Estacionamiento</option>
+                                                <option value="Gasolina" <?php echo ($cliente['Motivo'] == 'Gasolina') ? 'selected' : ''; ?>>Gasolina</option>
+                                                <option value="Casetas" <?php echo ($cliente['Motivo'] == 'Casetas') ? 'selected' : ''; ?>>Casetas</option>
+                                                <option value="Levantamiento" <?php echo ($cliente['Motivo'] == 'Levantamiento') ? 'selected' : ''; ?>>Levantamiento</option>
+                                                <option value="Soporte Técnico" <?php echo ($cliente['Motivo'] == 'Soporte Técnico') ? 'selected' : ''; ?>>Soporte Técnico</option>
+                                                <option value="Servicio" <?php echo ($cliente['Motivo'] == 'Servicio') ? 'selected' : ''; ?>>Servicio</option>
+                                                <option value="Puesto en marcha" <?php echo ($cliente['Motivo'] == 'Puesto en marcha') ? 'selected' : ''; ?>>Puesto en marcha</option>
+                                                <option value="Ejecución" <?php echo ($cliente['Motivo'] == 'Ejecución') ? 'selected' : ''; ?>>Ejecución</option>
+                                                <option value="Garantía" <?php echo ($cliente['Motivo'] == 'Garantía') ? 'selected' : ''; ?>>Garantía</option>
+                                                <option value="Otro" <?php echo ($cliente['Motivo'] == 'Otro') ? 'selected' : ''; ?>>Otro</option>
+                                            </select>
+                                            <!-- Campo de texto para "Otro" inicialmente oculto -->
+                                            <input type="text" placeholder="Especifique otro motivo"
+                                                class="form-control mt-3 otro-motivo-input" id="Otro_Cliente_1"
+                                                name="clientes[0][otro_motivo]" style="display:none;"
+                                                oninput="this.value = this.value.toUpperCase()">
+                                        </div>
+                                        <div class="col-md-6 text-center">
+                                            <label for="Fecha_Cliente_<?php echo $index + 1; ?>"
+                                                class="form-label"><strong>Fecha:</strong></label>
+                                            <input type="date" class="form-control cliente-fecha"
+                                                id="Fecha_Cliente_<?php echo $index + 1; ?>"
+                                                name="clientes[<?php echo $index; ?>][fecha]"
+                                                value="<?php echo isset($cliente['Fecha']) ? date('Y-m-d', strtotime($cliente['Fecha'])) : ''; ?>"
                                                 required>
                                         </div>
-                                        <div class="col-sm-2">
-                                            <button type="button" class="btn btn-danger btn-remove"
-                                                onclick="eliminarCiudad(this)">Eliminar</button>
+                                        <div class="col-md-6 text-center mt-4">
+                                            <?php if ($index + 1 > 1) { ?>
+                                                <button type="button" class="btn btn-danger eliminar-cliente"
+                                                    data-cliente-id="<?php echo $index + 1; ?>">Eliminar</button>
+                                            <?php } ?>
                                         </div>
                                     </div>
-                                <?php endfor; ?>
-                            </div>
-                            <div class="col-sm-6">
-                                <button type="button" id="agregarCiudad" class="btn btn-outline-primary">+ Agregar
-                                    Ciudad</button>
-                                <div id="emailHelp" class="form-text">Máx. 3 Ciudades</div>
-                            </div>
-                        </div>
-
-                        <script>
-                            let contadorCiudades = <?php echo count($ciudades); ?>;
-                        </script>
-                        <div class="row">
-                            <div class="col-lg-4 mb-3">
-                                <div id="contadorInputs">Número de Personas: <?php echo $TotalDePersonasEnElViatico; ?>
-                                </div>
-                                <br>
-                                <button type="button" id="agregarAcompañante" class="btn btn-outline-primary"
-                                    onclick="agregarInput()">Agregar Acompañante</button>
-                                <div id="emailHelp" class="form-text">Máx. 6 Acompañanates</div>
-                                <br>
-                            </div>
-                            <div class="col-lg-6 mb-2">
-                                <br>
-                                <div id="contenedorInputs">
-                                    <!-- Aquí se agregarán los inputs dinámicamente -->
-                                    <?php if (count($acompanantes) === 1 && $acompanantes[0]['Nombre'] === ' '): ?>
-                                        <!-- Si no hay acompañantes, agregar un input vacío -->
-                                        <div class="mb-3 d-flex align-items-center">
-                                            <input type="hidden" name="AcompananteIds[]" value="">
-                                            <input type="text" class="form-control" name="Acompanantes[]" value=""
-                                                placeholder="Nombre del acompañante" required>
-                                            <button type="button" class="btn btn-danger btn-sm ms-2"
-                                                onclick="eliminarInput(this)">Eliminar</button>
-                                        </div>
-                                    <?php else: ?>
-                                        <?php foreach ($acompanantes as $acompanante): ?>
-                                            <div class="mb-3 d-flex align-items-center">
-                                                <input type="hidden" name="AcompananteIds[]"
-                                                    value="<?php echo isset($acompanante['Id']) ? $acompanante['Id'] : 0; ?>">
-                                                <input type="text" class="form-control" name="Acompanantes[]"
-                                                    value="<?php echo htmlspecialchars($acompanante['Nombre']); ?>"
-                                                    placeholder="Nombre del acompañante" required>
-                                                <button type="button" class="btn btn-danger btn-sm ms-2"
-                                                    onclick="eliminarInput(this)">Eliminar</button>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                        <hr>
-                        <?php
-                        if ($_SESSION['Position'] === 'Gerente') {
+                                    <?php
+                                }
+                            }
                             ?>
-                            <div class="row">
-                                <p><strong>Monto Solicitado: </strong></p>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Hospedaje" class="col-form-label">Hospedaje:</label>
-                                    <input type="number" class="form-control suma-input" id="Hospedaje" name="Hospedaje"
-                                        min="0" value="<?php echo $Hospedaje ?>">
 
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Gasolina" class="col-form-label">Gasolina:</label>
-                                    <input type="number" class="form-control suma-input" id="Gasolina" name="Gasolina"
-                                    value="<?php echo $Gasolina ?>" required>
-                                </div>
+                            <!-- Botón para agregar cliente -->
+                            <div class="col-md-6 text-center mt-4">
+                                <button type="button" class="btn btn-primary w-100" id="agregarClienteBtn">+ Agregar
+                                    Cliente</button>
                             </div>
 
+                            <!-- Contenedor para clientes adicionales -->
+                            <div id="clientesAdicionales" class="mt-4"></div>
+                            <hr>
+                            <div class="text-center">
+                                <label for="Destino" class="form-label text-center"><strong>Destino:</strong></label>
+                            </div>
+
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="Casetas" class="col-form-label">Casetas:</label>
-                                    <input type="number" class="form-control suma-input" id="Casetas" name="Casetas" value="<?php echo $Casetas?>"
-                                        required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Alimentos" class="col-form-label">Alimentos:</label>
-                                    <input type="number" class="form-control suma-input" id="Alimentacion"
-                                   value="<?php echo $Alimentacion ?>" name="Alimentacion" min="0" max="1200"
-                                        data-max="1200" title="El valor no puede superar 1200" required
-                                        data-bs-toggle="popover" data-bs-trigger="manual"
-                                        >
+                                <div class="col-md-12 text-center">
+                                    <label for="destino" class="form-label"><strong>Estado:</strong></label>
+                                    <input type="text" placeholder="Ingrese el estado a visitar..." class="form-control"
+                                        id="destino" name="destino" value="<?php echo $estado_a_visitar; ?>" required>
                                 </div>
                             </div>
- 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="Vuelos" class="col-form-label">Vuelos:</label>
-                                    <input type="number" class="form-control suma-input" id="Vuelos" name="Vuelos"  value="<?php echo $Vuelos ?>"
-                                        placeholder="Monto de Vuelos..." required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Transporte" class="col-form-label">Transporte:</label>
-                                    <input type="number" class="form-control suma-input" id="Transporte" name="Transporte"  value="<?php echo $Transporte ?>"
-                                        placeholder="Monto de Transporte..." required>
+
+                            <!-- Botón para agregar ciudades -->
+                            <div class="row mt-3">
+                                <div class="col-md-12 text-center">
+                                    <button type="button" class="btn btn-primary w-100" id="agregarCiudadBtn">Agregar
+                                        Ciudad</button>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="Estacionamiento" class="col-form-label">Estacionamiento:</label>
-                                    <input type="number" class="form-control suma-input" id="Estacionamiento" name="Estacionamiento" value="<?php echo $Estacionamiento ?>"
-                                        placeholder="Monto de Estacionamiento..." required>
-                                </div>
-                            </div>
+
+                            <!-- Contenedor para las ciudades adicionales -->
+                            <div id="ciudadesAdicionales"></div>
+                            <hr>
+
                             <?php
-                        } else {
+                            // Obtenemos el primer acompañante para el input inicial
+                            $primerAcompanante = isset($acompanantes[0]['Nombre']) ? $acompanantes[0]['Nombre'] : '';
                             ?>
 
                             <div class="row">
-                            <p><strong>Monto Solicitado: </strong></p>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Hospedaje" class="col-form-label">Hospedaje:</label>
-                                    <input type="number" class="form-control suma-input" id="Hospedaje" name="Hospedaje"
-                                        min="0" value="<?php echo $Hospedaje ?>">
-
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Gasolina" class="col-form-label">Gasolina:</label>
-                                    <input type="number" class="form-control suma-input" id="Gasolina" name="Gasolina"
-                                    value="<?php echo $Gasolina ?>" required>
+                                <div class="col-md-12 text-center">
+                                    <label for="destino" class="form-label"><strong>Acompañantes:</strong></label>
+                                    <input type="text" class="form-control" id="acomp_1"
+                                        placeholder="Ingrese nombre de acompañante(s)" name="acomp_1"
+                                        value="<?php echo $primerAcompanante; ?>" required>
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="Casetas" class="col-form-label">Casetas:</label>
-                                    <input type="number" class="form-control suma-input" id="Casetas" name="Casetas" value="<?php echo $Casetas?>"
-                                        required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Alimentos" class="col-form-label">Alimentos:</label>
-                                    <input type="number" class="form-control suma-input" id="Alimentacion"
-                                   value="<?php echo $Alimentacion ?>" name="Alimentacion" min="0" max="1200"
-                                        data-max="1200" title="El valor no puede superar 1200" required
-                                        data-bs-toggle="popover" data-bs-trigger="manual"
-                                        >
+                            <div class="row" id="acomp-fields">
+                                <!-- Aquí se insertarán dinámicamente los acompañantes adicionales -->
+                                <?php
+                                // Empezamos desde el segundo acompañante, ya que el primero está en otro input
+                                if (count($acompanantes) > 1) {
+                                    foreach (array_slice($acompanantes, 1) as $index => $acompanante) {
+                                        $contador = $index + 2; // Los acompañantes empiezan desde el 2 en adelante
+                                        echo "
+                                    <div class='col-md-6 text-center mt-2' id='acomp-{$contador}'>
+                                        <label for='acomp_{$contador}' class='form-label'>Acompañante {$contador}:</label>
+                                        <input type='text' class='form-control' id='acomp_{$contador}' name='acomp_{$contador}' value='{$acompanante['Nombre']}' required>
+                                    </div>
+                                    ";
+                                    }
+                                }
+                                ?>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12 text-center">
+                                    <button type="button" class="btn btn-primary" onclick="addField()">Agregar
+                                        Acompañante</button>
+                                    <button type="button" class="btn btn-danger" onclick="removeFields()">Eliminar
+                                        Acompañante</button>
                                 </div>
                             </div>
- 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="Vuelos" class="col-form-label">Vuelos:</label>
-                                    <input type="number" class="form-control suma-input" id="Vuelos" name="Vuelos"  value="<?php echo $Vuelos ?>"
-                                        placeholder="Monto de Vuelos..." required>
+                            <hr>
+                            <div class="row mt-4">
+                                <div class="col-md-12 text-center">
+                                    <label for="Conceptos" class="form-label"><strong>Conceptos:</strong></label>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="Transporte" class="col-form-label">Transporte:</label>
-                                    <input type="number" class="form-control suma-input" id="Transporte" name="Transporte"  value="<?php echo $Transporte ?>"
-                                        placeholder="Monto de Transporte..." required>
+                                <hr>
+                                <div class="col-md-6 text-center">
+                                    <label for="MATERIALES" class="form-label"><strong>MATERIALES:</strong></label>
+                                    <input type="number" class="form-control" id="MATERIALES" name="MATERIALES"
+                                        value="<?php echo $MATERIALES; ?>" required>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="Estacionamiento" class="col-form-label">Estacionamiento:</label>
-                                    <input type="number" class="form-control suma-input" id="Estacionamiento" name="Estacionamiento" value="<?php echo $Estacionamiento ?>"
-                                        placeholder="Monto de Estacionamiento..." required>
+                                <div class="col-md-6 text-center">
+                                    <label for="GASTOS_MÉDICOS" class="form-label"><strong>GASTOS
+                                            MÉDICOS:</strong></label>
+                                    <input type="number" class="form-control" id="GASTOS_MEDICOS" name="GASTOS_MEDICOS"
+                                        value="<?php echo $GASTOS_MEDICOS; ?>" required>
                                 </div>
-                            </div>
-                            <?php
-                        }
-                        ?>
+                                <div class="col-md-6 text-center">
+                                    <label for="EQUIPOS" class="form-label"><strong>EQUIPOS:</strong></label>
+                                    <input type="number" class="form-control" id="EQUIPOS" name="EQUIPOS"
+                                        value="<?php echo $EQUIPOS; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="HOSPEDAJE" class="form-label"><strong>HOSPEDAJE:</strong></label>
+                                    <input type="number" class="form-control" id="HOSPEDAJE" name="HOSPEDAJE"
+                                        value="<?php echo $HOSPEDAJE; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="VUELOS" class="form-label"><strong>VUELOS:</strong></label>
+                                    <input type="number" class="form-control" id="VUELOS" name="VUELOS"
+                                        value="<?php echo $VUELOS; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="ALIMENTACIÓN"
+                                        class="form-label"></label><strong>ALIMENTACIÓN:</strong></label>
+                                    <input type="number" class="form-control" id="ALIMENTACIÓN" name="ALIMENTACION"
+                                        value="<?php echo $ALIMENTACION; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="TRANSPORTE" class="form-label"><strong>TRANSPORTE:</strong></label>
+                                    <input type="number" class="form-control" id="TRANSPORTE" name="TRANSPORTE"
+                                        value="<?php echo $TRANSPORTE; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="ESTACIONAMIENTO"
+                                        class="form-label"><strong>ESTACIONAMIENTO:</strong></label>
+                                    <input type="number" class="form-control" id="ESTACIONAMIENTO"
+                                        name="ESTACIONAMIENTO" value="<?php echo $ESTACIONAMIENTO; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="GASOLINA" class="form-label"><strong>GASOLINA:</strong></label>
+                                    <input type="number" class="form-control" id="GASOLINA" name="GASOLINA"
+                                        value="<?php echo $GASOLINA; ?>" required>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <label for="CASETAS" class="form-label"><strong>CASETAS:</strong></label>
+                                    <input type="number" class="form-control" id="CASETAS" name="CASETAS"
+                                        value="<?php echo $CASETAS; ?>" required>
+                                </div>
 
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="TotalDeViaticos" class="col-form-label">Monto Total:</label>
-                                <input type="text" class="form-control" id="TotalDeViaticos" name="TotalDeViaticos"
-                                    readonly>
+                                <div class="col-md-6 text-center">
+                                    <label for="Nombre_Concepto"
+                                        class="form-label"><strong><?php echo $Nombre_Concepto; ?>:</strong></label>
+                                    <input type="hidden" name="Nombre_Concepto" value="<?php echo $Nombre_Concepto; ?>">
+                                    <input type="number" class="form-control" id="Nombre_Concepto"
+                                        name="Nombre_Concepto_value" value="<?php echo $Otro; ?>" required>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="TotalDeViaticos" class="col-form-label">Terminar Solicitud:</label><br>
-                                <button type="submit" class="btn btn-success">Enviar</button>
-                            </div>
-                        </div>
+                            <br>
+                            <button type="submit" class="btn btn-success w-100">Finalizar Solicitud</button>
+                        </form>
+                    </div>
                 </div>
-                </form>
             </div>
-
         </div>
     </div>
-    </div>
-    </div>
-
     <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Scripts para gestionar fechas y horas -->
     <script>
-        // Obtener Fechas de los elementos del DOM
-        const fechaSalida = document.getElementById('FechaSalida');
-        const fechaRegreso = document.getElementById('FechaRegreso');
-        console.log(fechaRegreso)
-        const diasDiferencia = document.getElementById('diasDiferencia');
-        const inputs = document.querySelectorAll('.suma-input');
-        const totalDeViaticos = document.getElementById('TotalDeViaticos');
-        const hospedajeInput = document.getElementById('Hospedaje');
-        const alimentacionInput = document.getElementById('Alimentacion');
-        const totalDeViaticosAcompañantes = document.getElementById('TotalDeViaticosXAcompañantes');
-        const contInputs = document.getElementById('contadorInputs');
-        const TotalViaticosxDiaxAcompanantes = document.getElementById('TotalViaticosxDiaxAcompanantes');
-        let contador = 1;
+        const fechaSalida = document.getElementById('fechaSalida');
+        const fechaRegreso = document.getElementById('fechaRegreso');
 
-        /// ------------------------- Gestion de clientes -----------------------
-        let clienteCounter = <?php echo count($clientes); ?>;
-const maxClientes = 3;
-const fechasOcupadas = new Set();
-const clientesIds = Array.from({length: clienteCounter}, (v, i) => `cliente${i + 1}`);
-
-const clientesContainer = document.getElementById('clientesContainer');
-const agregarClienteBtn = document.getElementById('agregarCliente');
-
-function calcularFechasDisponibles() {
-    const fechaSalidaValue = fechaSalida.value;
-    const fechaRegresoValue = fechaRegreso.value;
-    let fechasDisponibles = [];
-
-    if (fechaSalidaValue && fechaRegresoValue) {
-        const fechaSalidaDate = new Date(fechaSalidaValue);
-        const fechaRegresoDate = new Date(fechaRegresoValue);
-
-        const diferenciaMilisegundos = fechaRegresoDate - fechaSalidaDate;
-        const diferenciaDias = (diferenciaMilisegundos / (1000 * 60 * 60 * 24)) + 1;
-
-        if (diferenciaDias >= 0) {
-            diasDiferencia.textContent = `Días Solicitados: ${diferenciaDias}`;
-
-            for (let i = 0; i < diferenciaDias; i++) {
-                const fecha = new Date(fechaSalidaDate);
-                fecha.setDate(fecha.getDate() + i);
-                fechasDisponibles.push(fecha.toISOString().split('T')[0]);
-            }
-        } else {
-            diasDiferencia.textContent = 'Error: La fecha de regreso debe ser posterior o igual a la fecha de salida';
-        }
-    }
-    return fechasDisponibles;
-}
-
-function MostrarFechas() {
-    calcularFechasDisponibles();
-    actualizarFechasDisponiblesParaClientes();
-}
-
-function actualizarFechasDisponiblesParaClientes() {
-    const fechasDisponibles = calcularFechasDisponibles();
-
-    clientesContainer.querySelectorAll('.fechaVisita').forEach(select => {
-        const selectedValue = select.value;
-        select.innerHTML = '<option value="">Fechas Disponibles:</option>';
-        fechasDisponibles.forEach(fecha => {
-            const isDisabled = fechasOcupadas.has(fecha) && fecha !== selectedValue;
-            const option = document.createElement('option');
-            option.value = fecha;
-            option.textContent = fecha;
-            if (isDisabled) {
-                option.disabled = true;
-            }
-            select.appendChild(option);
-        });
-
-        if (selectedValue) {
-            select.value = selectedValue;
-        }
-    });
-}
-
-function agregarCliente() {
-    if (clientesIds.length >= maxClientes) {
-        return;
-    }
-
-    clienteCounter++;
-    const clienteId = `cliente${clienteCounter}`;
-    clientesIds.push(clienteId);
-
-    const clienteDiv = document.createElement('div');
-    clienteDiv.className = 'row mb-3';
-    clienteDiv.id = clienteId;
-    clienteDiv.innerHTML = `
-        <div class="col-md-6 mb-3">
-            <label for="Cliente${clienteCounter}" class="form-label">Nombre Del cliente:</label>
-            <input type="text" class="form-control" id="Cliente${clienteCounter}" name="Cliente${clienteCounter}" required>
-            <br>
-        </div>
-        <div class="col-md-6 mb-3">
-            <label for="Motivo${clienteCounter}" class="form-label">Motivo de Visita:</label>
-            <select class="form-select" id="Motivo${clienteCounter}" name="Motivo${clienteCounter}" required>
-                <option value="Visita">Visita</option>
-                <option value="Capacitacion">Capacitación</option>
-                <option value="Reunion">Reunión</option>
-                <option value="Otro">Otro</option>
-            </select>
-            <br>
-        </div>
-        <div class="col-md-6 mb-3">
-            <label for="FechaDeVisita${clienteCounter}" class="form-label">Fecha de Visita:</label>
-            <select class="form-select fechaVisita" id="FechaDeVisita${clienteCounter}" name="FechaDeVisita${clienteCounter}" required>
-                <option value="">Fechas Disponibles:</option>
-            </select>
-            <br>
-        </div>
-        <div class="col-md-6 mb-3">
-            <button type="button" class="btn btn-danger" onclick="eliminarCliente('${clienteId}')">Eliminar Cliente</button>
-        </div>
-    `;
-
-    clientesContainer.appendChild(clienteDiv);
-
-    clienteDiv.querySelector('.fechaVisita').addEventListener('change', function() {
-        const fechaSeleccionada = this.value;
-        if (fechaSeleccionada) {
-            fechasOcupadas.add(fechaSeleccionada);
-        } else {
-            fechasOcupadas.delete(fechaSeleccionada);
-        }
-        actualizarFechasDisponiblesParaClientes();
-    });
-
-    actualizarFechasDisponiblesParaClientes();
-
-    if (clientesIds.length >= maxClientes) {
-        agregarClienteBtn.disabled = true;
-    }
-}
-
-function eliminarCliente(id) {
-    const clienteDiv = document.getElementById(id);
-    const fechaVisitaSelect = clienteDiv.querySelector('.fechaVisita');
-    const fechaSeleccionada = fechaVisitaSelect.value;
-
-    if (fechaSeleccionada) {
-        fechasOcupadas.delete(fechaSeleccionada);
-    }
-
-    clienteDiv.remove();
-    const index = clientesIds.indexOf(id);
-    if (index > -1) {
-        clientesIds.splice(index, 1);
-    }
-
-    actualizarFechasDisponiblesParaClientes();
-
-    if (clientesIds.length < maxClientes) {
-        agregarClienteBtn.disabled = false;
-    }
-}
-
-fechaSalida.addEventListener('change', MostrarFechas);
-fechaRegreso.addEventListener('change', MostrarFechas);
-agregarClienteBtn.addEventListener('click', agregarCliente);
-
-// Inicializar las fechas disponibles para los clientes cargados
-document.addEventListener('DOMContentLoaded', () => {
-    actualizarFechasDisponiblesParaClientes();
-    document.querySelectorAll('.fechaVisita').forEach(select => {
-        select.addEventListener('change', function() {
-            const fechaSeleccionada = this.value;
-            if (fechaSeleccionada) {
-                fechasOcupadas.add(fechaSeleccionada);
-            } else {
-                fechasOcupadas.delete(fechaSeleccionada);
-            }
-            actualizarFechasDisponiblesParaClientes();
-        });
-    });
-});
-
-
-
-
-
-
-        /// --------------------------------------
-        
-        // Funcion para limitar el valor del input de alimentacion
-        function limitarAlimentacion() {
-            const max = parseFloat(alimentacionInput.getAttribute('data-max'));  // Obtener el valor máximo permitido
-            let value = parseFloat(alimentacionInput.value) || 0;  // Obtener el valor actual del input, 0 si está vacío
-
-            if (value > max) {  // Si el valor actual es mayor que el máximo
-                alimentacionInput.value = max;  // Establecer el valor máximo permitido
-            }
-
-            calcularTotal();  // Recalcular el total después de ajustar el valor
-        }
-
-        // Añadir event listener específico para el input de alimentacion para limitar su valor
-        alimentacionInput.addEventListener('input', limitarAlimentacion);
-
-        // Función para limitar el valor del input de hospedaje
-        function limitarHospedaje() {
-            const max = parseFloat(hospedajeInput.getAttribute('data-max'));  // Obtener el valor máximo permitido
-            let value = parseFloat(hospedajeInput.value) || 0;  // Obtener el valor actual del input, 0 si está vacío
-
-            if (value > max) {  // Si el valor actual es mayor que el máximo
-                hospedajeInput.value = max;  // Establecer el valor máximo permitido
-            }
-
-            calcularTotal();  // Recalcular el total después de ajustar el valor
-        }
-
-        // Añadir event listener específico para el input de hospedaje para limitar su valor
-        hospedajeInput.addEventListener('input', limitarHospedaje);
-
-        // Calcular el monto total de los viaticos al cambiar los valores de los inputs
-        function calcularTotal() {
-            let total = 0;
-            inputs.forEach(input => {
-                const value = parseFloat(input.value) || 0; // Convertir a 0 si es num. vacio
-                total += value;
-            });
-            totalDeViaticos.value = total;
-            calcularTotalXAcompañantes(total);
-            calcularTotalXDias(total);
-        }
-
-        // Añadir event listeners para calcular el monto total al cambiar los valores de los inputs
-        inputs.forEach(input => {
-            input.addEventListener('input', calcularTotal);
-        });
-
-        calcularTotal();
-        // Función para establecer la fecha mínima de salida (el día siguiente a hoy)
-        function setMinFechaSalida() {
-            const today = new Date();  // Obtener la fecha actual
-            today.setDate(today.getDate() + 1);  // Incrementar en un día
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');  // Meses en JavaScript van de 0 a 11
-            const dd = String(today.getDate()).padStart(2, '0');
-            const minDate = `${yyyy}-${mm}-${dd}`;  // Formatear la fecha en yyyy-mm-dd
-
-            fechaSalida.min = minDate;  // Establecer la fecha mínima en el input de fecha de salida
-        }
-
-        // Función para establecer la fecha mínima de regreso (después de la fecha de salida)
-        function setMinFechaRegreso() {
-            const selectedFechaSalida = fechaSalida.value;  // Obtener la fecha seleccionada en el input de fecha de salida
-            if (selectedFechaSalida) {
-                fechaRegreso.min = selectedFechaSalida;  // Establecer la fecha mínima en el input de fecha de regreso
-            }
-        }
-
+        // ------------------Diferencia de dias ---------------------
         // Función para calcular la diferencia de días
         function calcularDiferenciaDias() {
             const fechaSalidaValue = fechaSalida.value;
@@ -827,8 +467,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Función para establecer la fecha mínima de salida (el día siguiente a hoy)
+        function setMinFechaSalida() {
+            const today = new Date();  // Obtener la fecha actual
+            today.setDate(today.getDate() + 1);  // Incrementar en un día
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');  // Meses en JavaScript van de 0 a 11
+            const dd = String(today.getDate()).padStart(2, '0');
+            const minDate = `${yyyy}-${mm}-${dd}`;  // Formatear la fecha en yyyy-mm-dd
+
+            fechaSalida.min = minDate;  // Establecer la fecha mínima en el input de fecha de salida
+        }
+
+        // Función para establecer la fecha mínima de regreso (después de la fecha de salida)
+        function setMinFechaRegreso() {
+            const selectedFechaSalida = fechaSalida.value;  // Obtener la fecha seleccionada en el input de fecha de salida
+            if (selectedFechaSalida) {
+                fechaRegreso.min = selectedFechaSalida;  // Establecer la fecha mínima en el input de fecha de regreso
+            }
+        }
+
+        // Añadir un event listener para actualizar la fecha mínima de regreso al cambiar la fecha de salida
+        fechaSalida.addEventListener('change', setMinFechaRegreso);
+
         // Establecer la fecha mínima de salida al cargar la página
         setMinFechaSalida();
+        setMinFechaRegreso();
+
 
         // Añadir event listeners para actualizar la fecha mínima de regreso y calcular la diferencia en días al cambiar las fechas
         fechaSalida.addEventListener('change', () => {
@@ -836,120 +501,192 @@ document.addEventListener('DOMContentLoaded', () => {
             calcularDiferenciaDias();
         });
         fechaRegreso.addEventListener('change', calcularDiferenciaDias);
+    </script>
 
-        // Añadir un event listener para actualizar la fecha mínima de regreso al cambiar la fecha de salida
-        fechaSalida.addEventListener('change', setMinFechaRegreso);
+    <!-- Scripts para agregar y eliminar clientes -->
+    <script>document.addEventListener('DOMContentLoaded', function () {
+            let clienteCounter = <?php echo count($clientes); ?>;
+            const maxClientes = 3; // Ajusta el límite si es necesario
+            const agregarClienteBtn = document.getElementById('agregarClienteBtn');
+            const clientesAdicionales = document.getElementById('clientesAdicionales');
 
-        // Acutalizar Contador de personas
-        function actualizarContador() {
-            const contadorInputs = document.getElementById('contadorInputs');
-            if (contadorInputs) {
-                contadorInputs.textContent = `Número de Personas: ${contador + 1}`; // +1 para incluir al usuario principal
-            }
-            calcularTotal();
-        }
+            // Evento para agregar un nuevo cliente
+            agregarClienteBtn.addEventListener('click', function () {
+                if (clienteCounter < maxClientes) {
+                    clienteCounter++;
 
-        // Gestion de ciudades 
-        document.addEventListener('DOMContentLoaded', function () {
-            const agregarCiudadBtn = document.getElementById('agregarCiudad');
-            const ciudadesAdicionales = document.getElementById('ciudades-adicionales');
-            const maxCiudades = 3;
-
-            agregarCiudadBtn.addEventListener('click', function () {
-                if (contadorCiudades < maxCiudades) {
-                    contadorCiudades++;
-                    const nuevaCiudadDiv = document.createElement('div');
-                    nuevaCiudadDiv.className = 'row mb-3';
-                    nuevaCiudadDiv.id = `ciudad${contadorCiudades}-container`;
-                    nuevaCiudadDiv.innerHTML = `
-                <div class="col-sm-4">
-                    <label for="Ciudad${contadorCiudades}" class="col-form-label">Ciudad Extra:</label>
+                    const nuevoCliente = document.createElement('div');
+                    nuevoCliente.classList.add('row', 'mt-3');
+                    nuevoCliente.setAttribute('id', `cliente_${clienteCounter}`);
+                    // Asegúrate de que el valor de la opción coincida con el valor almacenado en la base de datos
+                    nuevoCliente.innerHTML = `
+                <div class="col-md-6 text-center">
+                    <label for="Nombre_Cliente_${clienteCounter}" class="form-label">Nombre:</label>
+                    <input type="text" class="form-control" id="Nombre_Cliente_${clienteCounter}" name="clientes[${clienteCounter - 1}][nombre]" required>
                 </div>
-                <div class="col-sm-6">
-                    <input type="text" class="form-control" id="Ciudad${contadorCiudades}" name="Ciudad[]" required>
+                <div class="col-md-6 text-center">
+                    <label for="Motivo_Cliente_${clienteCounter}" class="form-label">Motivo:</label>
+                    <select class="form-select motivo-cliente" id="Motivo_Cliente_${clienteCounter}" name="clientes[${clienteCounter - 1}][motivo]" required>
+                    <option value="">Seleccione una opción</option>
+                                        <option value="Hospedaje">Hospedaje</option>
+                                        <option value="Vuelos">Vuelos</option>
+                                        <option value="Alimentación">Alimentación</option>
+                                        <option value="Transporte">Transporte</option>
+                                        <option value="Estacionamiento">Estacionamiento</option>
+                                        <option value="Gasolina">Gasolina</option>
+                                        <option value="Casetas">Casetas</option>
+                                        <option value="Levantamiento">Levantamiento</option>
+                                        <option value="Soporte Técnico">Soporte Técnico</option>
+                                        <option value="Servicio">Servicio</option>
+                                        <option value="Puesto en marcha">Puesto en marcha</option>
+                                        <option value="Ejecucion">Ejecución</option>
+                                        <option value="Garantia">Garantía</option>
+                                        <option value="Otro">Otro</option>
+                    </select>
+                    <input type="text" placeholder="Especifique otro motivo" class="form-control mt-3 otro-motivo-input" id="Otro_Cliente_${clienteCounter}" name="clientes[${clienteCounter - 1}][otro_motivo]" style="display:none;" oninput="this.value = this.value.toUpperCase()">
                 </div>
-                <div class="col-sm-2">
-                    <button type="button" class="btn btn-danger btn-remove" onclick="eliminarCiudad(this)">Eliminar</button>
-                </div>`;
-                    ciudadesAdicionales.appendChild(nuevaCiudadDiv);
-                    if (contadorCiudades === maxCiudades) {
-                        agregarCiudadBtn.disabled = true;
+                <div class="col-md-6 text-center">
+                    <label for="Fecha_Cliente_${clienteCounter}" class="form-label">Fecha:</label>
+                    <input type="date" class="form-control cliente-fecha" id="Fecha_Cliente_${clienteCounter}" name="clientes[${clienteCounter - 1}][fecha]" required>
+                </div>
+                <div class="col-md-6 text-center mt-4">
+                    <button type="button" class="btn btn-danger eliminar-cliente" data-cliente-id="${clienteCounter}">Eliminar</button>
+                </div>
+            `;
+
+                    clientesAdicionales.appendChild(nuevoCliente);
+
+                    // Deshabilitar el botón de agregar cuando se alcance el límite
+                    if (clienteCounter === maxClientes) {
+                        agregarClienteBtn.disabled = true;
                     }
                 }
             });
 
-            window.eliminarCiudad = function (btn) {
-                const ciudadContainer = btn.closest('.row');
-                ciudadContainer.remove();
-                contadorCiudades--;
-                if (contadorCiudades < maxCiudades) {
-                    agregarCiudadBtn.disabled = false;
+            // Evento de delegación para eliminar un cliente específico
+            document.addEventListener('click', function (event) {
+                if (event.target.classList.contains('eliminar-cliente')) {
+                    const clienteId = event.target.getAttribute('data-cliente-id');
+                    const clienteDiv = document.getElementById(`cliente_${clienteId}`);
+                    clienteDiv.remove();
+
+                    clienteCounter--;
+                    agregarClienteBtn.disabled = false;
                 }
-            };
+            });
         });
 
-        // Agregar input de acompañantes
-        function agregarInput() {
-            if (contador >= 6) {
-                alert('No puedes agregar más de 6 acompañantes.');
-                return;
+         // Mostrar input de "Otro" cuando se selecciona la opción "Otro"
+         document.addEventListener('change', function (event) {
+                if (event.target.classList.contains('motivo-cliente')) {
+                    const otroInput = event.target.nextElementSibling;
+                    if (event.target.value === "Otro") {
+                        otroInput.style.display = 'block';
+                        otroInput.required = true; // Hacerlo obligatorio
+                    } else {
+                        otroInput.style.display = 'none';
+                        otroInput.required = false; // No obligatorio si no es "Otro"
+                    }
+                }
+            });
+
+
+
+    </script>
+
+    <!-- Scripts para agregar y eliminar ciudades -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let ciudadCounter = 0;
+            const maxCiudades = 3;
+            const agregarCiudadBtn = document.getElementById('agregarCiudadBtn');
+            const ciudadesAdicionales = document.getElementById('ciudadesAdicionales');
+
+            // Aquí agregamos las ciudades guardadas en PHP
+            <?php
+            // Recorremos las ciudades guardadas en el arreglo y las mostramos en los inputs
+            if (!empty($ciudades)) {
+                foreach ($ciudades as $index => $ciudad) {
+                    echo "agregarCiudadDinamica('{$ciudad['Ciudad']}');";
+
+                }
+            }
+            ?>
+
+            // Función para agregar una nueva ciudad de manera dinámica
+            function agregarCiudadDinamica(ciudadNombre = '') {
+                if (ciudadCounter < maxCiudades) {
+                    ciudadCounter++;
+
+                    const nuevaCiudad = document.createElement('div');
+                    nuevaCiudad.classList.add('row', 'mt-3');
+                    nuevaCiudad.setAttribute('id', `ciudad_${ciudadCounter}`);
+                    nuevaCiudad.innerHTML = `
+                <div class="col-md-6 text-center">
+                    <label for="Nombre_Ciudad_${ciudadCounter}" class="form-label">Ciudad:</label>
+                    <input type="text" class="form-control" id="Nombre_Ciudad_${ciudadCounter}" name="ciudades[${ciudadCounter - 1}][nombre]" value="${ciudadNombre}" required>
+                </div>
+                <div class="col-md-6 text-center mt-4">
+                    <button type="button" class="btn btn-danger eliminar-ciudad" data-ciudad-id="${ciudadCounter}">Eliminar</button>
+                </div>
+            `;
+
+                    ciudadesAdicionales.appendChild(nuevaCiudad);
+
+                    if (ciudadCounter === maxCiudades) {
+                        agregarCiudadBtn.disabled = true;
+                    }
+                }
             }
 
-            const contenedorInputs = document.getElementById('contenedorInputs');
-            const nuevoContenedor = document.createElement('div');
-            nuevoContenedor.className = 'mb-3 d-flex align-items-center';
+            // Evento para agregar una nueva ciudad con el botón
+            agregarCiudadBtn.addEventListener('click', function () {
+                agregarCiudadDinamica();
+            });
 
-            const nuevoInput = document.createElement('input');
-            nuevoInput.type = 'text';
-            nuevoInput.className = 'form-control';
-            nuevoInput.name = 'Acompanantes[]';
-            nuevoInput.placeholder = 'Nombre del acompañante';
-            nuevoInput.required = true;
+            // Evento para eliminar una ciudad
+            ciudadesAdicionales.addEventListener('click', function (event) {
+                if (event.target.classList.contains('eliminar-ciudad')) {
+                    const ciudadId = event.target.getAttribute('data-ciudad-id');
+                    const ciudadDiv = document.getElementById(`ciudad_${ciudadId}`);
+                    ciudadDiv.remove();
 
-            const nuevoInputId = document.createElement('input');
-            nuevoInputId.type = 'hidden';
-            nuevoInputId.name = 'AcompananteIds[]';
-            nuevoInputId.value = '';
+                    ciudadCounter--;
+                    agregarCiudadBtn.disabled = false;
+                }
+            });
+        });
+    </script>
 
-            const nuevoInputNombre = document.createElement('input');
-            nuevoInputNombre.type = 'text';
-            nuevoInputNombre.className = 'form-control';
-            nuevoInputNombre.name = 'Acompanantes[]';
-            nuevoInputNombre.placeholder = 'Nombre del acompañante';
-            nuevoInputNombre.required = true;
+    <!-- Scripts para agregar y eliminar acompañantes -->
+    <script>
+        // Contador inicial basado en los acompañantes ya cargados
+        let counter = <?php echo count($acompanantes); ?>;
+        const maxFields = 6;
 
-            const btnEliminar = document.createElement('button');
-            btnEliminar.textContent = 'Eliminar';
-            btnEliminar.type = 'button';
-            btnEliminar.className = 'btn btn-danger btn-sm ms-2';
-            btnEliminar.onclick = function () {
-                nuevoContenedor.remove();
-                contador--;
-                actualizarContador();
-            };
-
-            nuevoContenedor.appendChild(nuevoInput);
-            nuevoContenedor.appendChild(btnEliminar);
-            contenedorInputs.appendChild(nuevoContenedor);
-
-            contador++;
-            actualizarContador();
+        function addField() {
+            if (counter < maxFields) {
+                counter++;
+                const newField = `
+                <div class="col-md-6 text-center mt-2" id="acomp-${counter}">
+                    <label for="acomp_${counter}" class="form-label">Acompañante ${counter}:</label>
+                    <input type="text" class="form-control" id="acomp_${counter}" name="acomp_${counter}" required>
+                </div>
+            `;
+                document.getElementById('acomp-fields').insertAdjacentHTML('beforeend', newField);
+            } else {
+                alert('Solo puedes agregar hasta 6 acompañantes.');
+            }
         }
 
-        function eliminarInput(button) {
-            const contenedor = button.parentElement;
-            contenedor.remove();
-            contador--;
-            actualizarContador();
-        }
-
-        function actualizarContador() {
-            const contadorInputs = document.getElementById('contadorInputs');
-            if (contadorInputs) {
-                contadorInputs.textContent = `Número de Personas: ${contador + 1}`; // +1 para incluir al usuario principal
+        function removeFields() {
+            if (counter > 1) {
+                document.getElementById(`acomp-${counter}`).remove();
+                counter--;
             }
         }
     </script>
+
 </body>
 
 </html>

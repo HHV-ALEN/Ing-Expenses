@@ -1,22 +1,33 @@
 <?php
 
-require ('../../config/db.php');
+require('../../config/db.php');
+$Id_User = $_GET['id_user'];
+$Name = $_GET['Nombre'];
+$User = $_GET['Usuario'];
+$Mail = $_GET['Correo'];
+$Position = $_GET['Puesto'];
+$Gerente = $_GET['Gerente'];
+$Nss = $_GET['Nss'];
+$Télefono = $_GET['Télefono'];
 
-$Id_user = $_POST['id_user'];
-$Name = $_POST['nombre'];
-$Mail = $_POST['correo'];
-$Manager = $_POST['gerente'];
-$Position = $_POST['puesto'];
-$Sucursal = $_POST['sucursal'];
+echo "<br>--------------- Información del Formulario ---------------<br>";
+echo "Id de Usuario: " . $Id_User;
+echo "<br>Nombre: " . $Name;
+echo "<br>Usuario: " . $User;
+echo "<br>Correo: " . $Mail;
+echo "<br>Puesto: " . $Position;
+echo "<br>Gerente: " . $Gerente;
+echo "<br>NSS: " . $Nss;
+echo "<br>Télefono: " . $Télefono;
+echo "<br>--------------- ... ---------------<br>";
 
-$update_Query = "UPDATE usuarios SET Nombre = '$Name', 
-Correo = '$Mail', Gerente = '$Manager', Puesto = '$Position', Sucursal = '$Sucursal' WHERE Id = '$Id_user'";
-$update_Query_run = mysqli_query($conn, $update_Query);
-
-if ($update_Query_run) {
-    echo '<script> alert("Datos actualizados correctamente"); </script>';
-    header('Location: ../../../../../src/Admin/Usuarios.php');
+$sql_Query = "UPDATE usuarios SET Nombre = '$Name', Usuario = '$User', Correo = '$Mail', Puesto = '$Position', Gerente='$Gerente', NSS='$Nss', Telefono='$Télefono'  WHERE Id = '$Id_User'";
+$result = $conn->query($sql_Query);
+if ($result === TRUE) {
+    echo "Usuario actualizado correctamente";
+    header('Location: ../../../../src/Admin/Usuarios.php');
 } else {
-    echo '<script> alert("Error al actualizar los datos"); </script>';
+    echo "Error: " . $sql_Query . "<br>" . $conn->error;
 }
 
+?>

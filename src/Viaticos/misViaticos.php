@@ -1,16 +1,9 @@
 <?php
-include ('../actualizarVerificacion.php');
-session_start();
-if (!isset($_SESSION['ID'])) {
-    // La sesión ha caducado o el usuario no ha iniciado sesión
-    session_unset(); // Elimina todas las variables de sesión
-    session_destroy(); // Destruye la sesión
+include('../../resources/config/db.php');
 
-    header('Location: ../../index.php'); // Redirige al formulario de inicio de sesión
-    exit();
-}
-$id_user = $_SESSION['ID'];
-$Puesto = $_SESSION['Position'];
+session_start();
+$Nombre_Usuario = $_SESSION['Name'];
+$Tipo_Usuario = $_SESSION['Position'];
 
 // Configuración de la paginación
 $records_per_page = 10; // Número de registros por página
@@ -18,281 +11,211 @@ $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // Página actual
 $offset = ($page - 1) * $records_per_page; // Cálculo del offset
 
 // Consulta SQL con LIMIT y OFFSET para paginación
-$sql_query = "SELECT * FROM viaticos WHERE Id_Usuario = $id_user ORDER BY Id DESC LIMIT $offset, $records_per_page";
+$sql_query = "SELECT * FROM viaticos WHERE Solicitante = '$Nombre_Usuario' ORDER BY Id DESC LIMIT $offset, $records_per_page";
 $result = $conn->query($sql_query);
 
-// Consulta para contar el total de registros
-$total_records_query = "SELECT COUNT(*) AS total FROM viaticos";
-$total_records_result = $conn->query($total_records_query);
+// Obtener el valor del folio de venta desde el formulario (GET request)
+$Orden_Venta = isset($_GET['Orden_Venta']) ? $_GET['Orden_Venta'] : '';
+
+// Construir la consulta SQL para obtener los registros
+$sql_query = "SELECT * FROM viaticos WHERE Solicitante = ?";
+
+// Si se ha introducido un folio de venta, añadir el filtro al query
+if (!empty($Orden_Venta)) {
+    $sql_query .= " AND Orden_Venta LIKE ?";
+}
+
+// Ordenar y agregar paginación
+$sql_query .= " ORDER BY Id DESC LIMIT ?, ?";
+
+// Preparar la consulta
+$stmt = $conn->prepare($sql_query);
+
+// Manejar el valor para el LIKE del folio de venta
+$like_folio = "%$Orden_Venta%";
+
+// Asignar parámetros a la consulta preparada
+if (!empty($Orden_Venta)) {
+    $stmt->bind_param("ssii", $Nombre_Usuario, $like_folio, $offset, $records_per_page);
+} else {
+    $stmt->bind_param("sii", $Nombre_Usuario, $offset, $records_per_page);
+}
+
+// Ejecutar la consulta
+$stmt->execute();
+$result = $stmt->get_result();
+
+// ------------------------
+// Contar el total de registros (ajustando la consulta)
+// ------------------------
+
+$total_records_query = "SELECT COUNT(*) AS total_registros FROM viaticos WHERE Solicitante = ?";
+
+// Si se ha introducido un folio de venta, añadir el filtro al query
+if (!empty($Orden_Venta)) {
+    $total_records_query .= " AND Orden_Venta LIKE ?";
+}
+
+// Preparar la consulta para contar los registros
+$stmt_count = $conn->prepare($total_records_query);
+
+// Asignar parámetros a la consulta de conteo
+if (!empty($Orden_Venta)) {
+    $stmt_count->bind_param("ss", $Nombre_Usuario, $like_folio);
+} else {
+    $stmt_count->bind_param("s", $Nombre_Usuario);
+}
+
+// Ejecutar la consulta de conteo
+$stmt_count->execute();
+$total_records_result = $stmt_count->get_result();
 $total_records_row = $total_records_result->fetch_assoc();
-$total_records = $total_records_row['total'];
+$total_records = $total_records_row['total_registros'];
 
 // Calcular el número total de páginas
 $total_pages = ceil($total_records / $records_per_page);
 
-
-
-
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Mis Viáticos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Viaticos</title>
     <link rel="shortcut icon" href="/resources/img/logo-icon.png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <style>
-        body,
-        html {
-            height: 100%;
-            margin: 0;
-        }
 
-        .bg {
-            background-image: url('../../resources/img/FONDONEGRO.png');
-            height: 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 20px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 100%;
-        }
-
-        .card-header-custom {
-            background-color: #3b4ba1;
-            color: white;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        .table th,
-        .table td {
-            text-align: center;
-        }
-
-        @media (max-width: 991.98px) {
-            .navbar-nav .nav-link {
-                text-align: center;
-                border-bottom: 1px solid #e9ecef;
-                padding: 10px 0;
-                width: 100%;
-            }
-
-            .navbar-nav .nav-link:last-child {
-                border-bottom: none;
-            }
-
-            .navbar-nav .dropdown-divider {
-                display: none;
-            }
-
-            .navbar-collapse {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 100%;
-            }
-
-            .navbar-nav {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-
-            .table th,
-            .table td {
-                white-space: nowrap;
-            }
-        }
-    </style>
 </head>
 
 <body>
-    <!-- Inicio de la barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a href="../Users/index.php"><img src="../../resources/img/Alen.png" alt="ALEN Viáticos" class="img-fluid"
-                    style="padding: 5px; height: 47px;"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <?php
-                    if ($_SESSION['Position'] == 'Admin' || $_SESSION['Position'] == 'Control') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/ListadoViaticos.php">Listado Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Control/listadoReembolsos.php">Reembolsos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/verificacionEvidencias.php">Verificación de Evidencias</a>
-                        </li>';
-                    } elseif ($_SESSION['Position'] == 'Empleado') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misReembolsos.php">Mis Reembolsos</a>
-                        </li>';
-                    } elseif ($_SESSION['Position'] == 'Gerente') {
-                        echo '
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/solicitar.php">Solicitar Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/misViaticos.php">Mis Viáticos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="../Viaticos/reembolsar.php">Solicitar Reembolso</a>
-                        </li>
-                        <li class="nav-item ">
-                            <a class="nav-link" href="../Viaticos/misReembolsos.php">Mis Reembolsos</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                A mi cargo
-                            </a>
-                            <ul class="dropdown-menu text-center" aria-labelledby="navbarDropdown">
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/ViaticosACargo.php">Solicitudes</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/enEvidencia.php">Evidencias</a></li>
-                                <li class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../Viaticos/reembolsosACargo.php">Reembolsos</a></li>
-                                <li class="dropdown-divider"></li>
-                            </ul>
-                        </li>';
-                    }
-                    ?>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../perfil.php"><?php echo $_SESSION['Name'] ?></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../../index.php">Salir</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <br>
-    <!-- Fin de la barra de navegación -->
+    <?php
+    include 'Actualizadores.php';
+    include '../../src/navbar.php';
 
-
+    ?>
     <br>
     <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card card-custom">
+        <div class="row justify-content-center">
+            <div class="col-xl-12">
+                <div class="card">
                     <div class="card-header card-header-custom">
-                        <h4 class="text-center">Mis Viáticos</h4>
+                        <h5 class="card-title text-center"><i class="fas fa-user"></i> Mis Viáticos</h5>
                     </div>
-
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
+                            <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Fecha de Solicitud</th>
-                                        <th>Fecha de Inicio</th>
-                                        <th>Fecha de Fin</th>
-                                        <th>Estado</th>
-                                        <th>Cliente</th>
-                                        <th colspan="2">Información</th>
+                                        <th class="text-center" scope="col">ID</th>
+                                        <th class="text-center" scope="col">Fecha de Registro</th>
+                                        <th class="text-center" scope="col">Fecha de Salida</th>
+                                        <th class="text-center" scope="col">Fecha de Regreso</th>
+                                        <th class="text-center" scope="col">Proyecto</th>
+                                        <th class="text-center" scope="col">Estado</th>
+                                        <th class="text-center" colspan="3">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <div class="container">
+                                        <form method="GET" action="">
+                                            <input type="text" name="Orden_Venta"
+                                                placeholder="Buscar por Folio de Venta"
+                                                value="<?php echo isset($_GET['Orden_Venta']) ? $_GET['Orden_Venta'] : ''; ?>">
+                                            <button type="submit">Buscar</button>
+                                        </form>
+
+                                    </div>
+
                                     <?php
+                                    $Color_Row = "";
                                     if ($result->num_rows > 0) {
                                         while ($row = $result->fetch_assoc()) {
-                                            echo "<tr>";
-                                            echo "<td>" . $row['Id'] . "</td>";
-                                            echo "<td>" . $row['Fecha_Solicitud'] . "</td>";
-                                            echo "<td>" . $row['Fecha_Salida'] . "</td>";
-                                            echo "<td>" . $row['Fecha_Regreso'] . "</td>";
-                                            echo "<td>" . $row['Estado'] . "</td>";
-                                            /// Consulta para obtener los clientes desde la tabla clientes a partr del id del viatico: $row['Id'] 
-                                            $sql_clientes = "SELECT Nombre FROM clientes WHERE Id_Viatico = " . $row['Id'];
-                                            $result_clientes = $conn->query($sql_clientes);
-                                            $clientes = "";
-                                            if ($result_clientes->num_rows > 0) {
-                                                while ($row_clientes = $result_clientes->fetch_assoc()) {
-                                                    $clientes .= $row_clientes['Nombre'] . ", ";
-                                                }
-                                                $clientes = substr($clientes, 0, -2);
-                                            } else {
-                                                $clientes = "No hay clientes";
+                                            switch ($row['Estado']) {
+                                                case 'Abierto':
+                                                    $Color_Row = "table-secondary";
+                                                    break;
+                                                case 'Aceptado':
+                                                    $Color_Row = "table-primary";
+                                                    break;
+                                                case 'Rechazado':
+                                                    $Color_Row = "table-danger";
+                                                    break;
+                                                case 'Verificación':
+                                                    $Color_Row = "table-info";
+                                                    break;
+                                                case 'Revisión':
+                                                    $Color_Row = "table-warning";
+                                                    break;
+                                                case 'Prórroga':
+                                                    $Color_Row = "table-warning";
+                                                    break;
+                                                case 'Completado':
+                                                    $Color_Row = "table-success";
+                                                    break;
+                                                case 'En Curso':
+                                                    $Color_Row = "table-light";
+                                                    break;
+                                                case 'Cerrado':
+                                                    $Color_Row = "table-danger";
+                                                    break;
+                                                case 'Segunda Revisión':
+                                                    $Color_Row = "table-warning";
+                                                    break;
                                             }
+                                            echo '';
+                                            echo "<tr  class='" . $Color_Row . "'>";
+                                            echo "<td class='text-center'>" . $row['Id'] . "</td>";
+                                            echo "<td class='text-center'>" . $row['Fecha_Registro'] . "</td>";
+                                            echo "<td class='text-center'>" . $row['Fecha_Salida'] . "</td>";
+                                            echo "<td class='text-center'>" . $row['Fecha_Regreso'] . "</td>";
+                                            echo "<td class='text-center'>" . $row['Orden_Venta'] . " " . $row['Codigo'] . " " . $row['Nombre_Proyecto'] . "</td>";
+                                            echo "<td class='text-center'>" . $row['Estado'] . "</td>";
 
-                                            echo "<td>" . $clientes . "</td>";
-                                            if ($row['Estado'] == 'Abierto') {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                                echo "<td><a href='editar.php?id_viatico=" . $row['Id'] . "' class='btn btn-warning'>Editar Información</a></td>";
-                                            } elseif ($row['Estado'] == 'Completado') {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                                echo "<td><a href='reembolso.php?id_viatico=" . $row['Id'] . "' class='btn btn-success'>Solicitar Reembolso</a></td>";
-                                            } elseif ($row['Estado'] == 'Aceptado') {
-                                                echo "<td colspan='2'><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                            } elseif ($row['Estado'] == 'Verificacion') {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                                echo "<td><a href='evidencias.php?id_viatico=" . $row['Id'] . "' class='btn btn-primary'>Agregar Evidencias</a></td>";
-                                            } elseif($row['Estado'] == 'EnCurso') {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                                echo "<td><a href='evidencias.php?id_viatico=" . $row['Id'] . "' class='btn btn-primary'>Agregar Evidencias</a></td>";
-                                            } elseif($row['Estado'] == 'Prórroga') {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                                echo "<td><a href='evidencias.php?id_viatico=" . $row['Id'] . "' class='btn btn-primary'>Agregar Evidencias</a></td>";
-                                            } 
-                                            elseif($row['Estado'] == 'Verificación') {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
-                                                echo "<td><a href='evidencias.php?id_viatico=" . $row['Id'] . "' class='btn btn-primary'>Agregar Evidencias</a></td>";
-                                            } 
-                                            else {
-                                                echo "<td><a href='detalles.php?id_viatico=" . $row['Id'] . "' class='btn btn-info'>Ver Información</a></td>";
+                                            if ($row['Estado'] == 'Abierto' && $Tipo_Usuario == 'Empleado') {
+                                                echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
+                                                echo "<td class='text-center'><a href='../../resources/Back/Viaticos/DeleteViatico.php?id=" . $row['Id'] . "' class='btn btn-danger'>Eliminar</a></td>";
+                                                echo "<td class='text-center'><a href='editar.php?id=" . $row['Id'] . "' class='btn btn-warning'>Editar</a></td>";
+                                                echo "<td></td>";
                                             }
-                                            echo "</tr>";
+                                            if (($row['Estado'] == 'Revisión' || $row['Estado'] == 'En Curso' || $row['Estado']=='Verificación' ||  $row['Estado']=='Prórroga') && $Tipo_Usuario == 'Empleado') {
+                                                echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
+                                                echo "<td class='text-center'><a href='SubirEvidencias.php?id=" . $row['Id'] . "' class='btn btn-success'>Evidenciar</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                            }
+                                            if ($row['Estado'] == 'Completado' || $row['Estado'] == 'Segunda Revisión' ){
+                                                echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
+                                                echo "<td class='text-center'><a href='SubirEvidencias.php?id=" . $row['Id'] . "' class='btn btn-success'>Ver Evidencias</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                            }
+                                            elseif ($row['Estado'] == 'Rechazado'){
+                                                echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                            }
+                                            elseif ($row['Estado'] == 'Aceptado'){
+                                                echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                            }
+                                            elseif ($row['Estado'] == 'Fuera de Rango'){
+                                                echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                            }
+                                            
+
+
                                         }
                                     } else {
-                                        echo "<tr><td colspan='8'>No hay viáticos registrados.</td></tr>";
+                                        echo "<tr><td colspan='7'>No hay viáticos registrados</td></tr>";
                                     }
                                     ?>
                                 </tbody>
@@ -324,20 +247,17 @@ $total_pages = ceil($total_records / $records_per_page);
                                 <?php endif; ?>
                             </ul>
                         </nav>
-                    </div>
 
+
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <br>
-    <br>
 
+            <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
