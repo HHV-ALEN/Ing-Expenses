@@ -10,10 +10,13 @@ $records_per_page = 10; // Número de registros por página
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // Página actual
 $offset = ($page - 1) * $records_per_page; // Cálculo del offset
 
-$Nombre_Gerente = trim($_SESSION['Name']); // Asegúrate de eliminar espacios accidentales
+$Nombre_Gerente = trim($_SESSION['User']); // Asegúrate de eliminar espacios accidentales
 
+echo "Nombre Gerente: $Nombre_Gerente";
 // Obtener el valor del filtro de Folio de Venta desde el formulario
 $Orden_Venta = isset($_GET['Orden_Venta']) ? $_GET['Orden_Venta'] : '';
+
+
 
 // Construir la consulta SQL base para los viáticos
 $sql_query = "
@@ -48,7 +51,6 @@ if (!empty($Orden_Venta)) {
 } else {
     $stmt->bind_param("sii", $Nombre_Gerente, $offset, $records_per_page);
 }
-
 // Ejecutar la consulta y obtener los resultados
 $stmt->execute();
 $result = $stmt->get_result();
@@ -98,8 +100,8 @@ $total_records = $total_records_row['total_registros'];
 // Calcular el número total de páginas
 $total_pages = ceil($total_records / $records_per_page);
 
-?>
 
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -198,3 +200,5 @@ $total_pages = ceil($total_records / $records_per_page);
 
 </body>
 </html>
+*/
+?>

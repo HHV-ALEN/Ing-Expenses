@@ -54,7 +54,6 @@ if ($result) {
 
 // Fecha de hoy
 $Fecha = date('Y-m-d');
-$Nombre_Solicitante = $_SESSION['Name'];
 
 echo "Información del reembolso: <br>";
 echo "Solicitante: $Solicitante <br>";
@@ -83,93 +82,46 @@ try {
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
-    // Configurar el correo para el gerente
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente); 
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
-    $mail->Subject = 'Solicitud de reembolso de ' . $Nombre_Solicitante .' Rechazado';
-    $mail->Body = '
-    <p>Estimado ' . $NombreGerente . ',</p>
-
-    <p>La solicitud de reembolso de ' . $Nombre_Solicitante . ' ha sido Rechazada con la siguiente información:</p>
-    <hr>
-    <p>
-        <strong>Solicitante:</strong> ' . $Solicitante . '<br>
-        <strong>Concepto:</strong> ' . $Concepto . '<br>
-        <strong>Monto:</strong> ' . $Monto . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Fecha:</strong> ' . $Fecha . '<br>
-        <strong>Descripción:</strong> ' . $Descripcion . '<br>
-        <strong>Estado:</strong> ' . $Estado . '<br>
-    <hr>
-
-    <p>Por favor, revise el sistema para proceder con el procesoo.</p>
-    
-    <p>Para más detalles y seguimiento de la solicitud, acceda al aplicativo a través del siguiente enlace:</p>
-    
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos Ingenieria</a></p>
-    
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
-
-    $mail->AltBody = '
-    Solicitud de reembolso de ' . $Nombre_Solicitante . ' Rechazada:
-    <strong>Solicitante:</strong> ' . $Solicitante . '<br>
-        <strong>Concepto:</strong> ' . $Concepto . '<br>
-        <strong>Monto:</strong> ' . $Monto . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Fecha:</strong> ' . $Fecha . '<br>
-        <strong>Descripción:</strong> ' . $Descripcion . '<br>
-        <strong>Estado:</strong> ' . $Estado . '<br>
-    Por favor, revise el sistema para proceder con su aprobación. Para más detalles y seguimiento de la solicitud, acceda al aplicativo.';
-
-
-
-    // Enviar el correo al gerente
-    $mail->send();
-
-    // Reiniciar las propiedades del correo para el próximo envío
-    $mail->clearAddresses();
-    $mail->clearAttachments();
-
     // Configurar el correo para el empleado
     $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Solicitud de Reembolso Revhazada';
+    $mail->Subject = '❌ Solicitud de Reembolso Rechazada';
     $mail->Body = '
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
-
-    <p>Tu solicitud de reembolso ha sido rechazada:</p>
-
-    <hr>
-<p>
-        <strong>Solicitante:</strong> ' . $Solicitante . '<br>
-        <strong>Concepto:</strong> ' . $Concepto . '<br>
-        <strong>Monto:</strong> ' . $Monto . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Fecha:</strong> ' . $Fecha . '<br>
-        <strong>Descripción:</strong> ' . $Descripcion . '<br>
-        <strong>Estado:</strong> ' . $Estado . '<br>
-    <hr>
+        <div style="font-family: Arial, sans-serif; color: #333;">
+            <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
     
-    <p>Para más detalles y seguimiento de tu solicitud, accede al aplicativo a través del siguiente enlace:</p>
+            <p>⚠️ Lamentamos informarte que tu solicitud de reembolso ha sido <strong>rechazada</strong> por el gerente. A continuación, encontrarás los detalles:</p>
     
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+            <div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+                <p>🧑‍💼 <strong>Solicitante:</strong> ' . $Solicitante . '</p>
+                <p>📝 <strong>Concepto:</strong> ' . $Concepto . '</p>
+                <p>💵 <strong>Monto:</strong> $' . $Monto . '</p>
+                <p>📍 <strong>Destino:</strong> ' . $Destino . '</p>
+                <p>📅 <strong>Fecha:</strong> ' . $Fecha . '</p>
+                <p>🖊️ <strong>Descripción:</strong> ' . $Descripcion . '</p>
+            </div>
     
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
-
-    $mail->AltBody = '
-    <p>
-        <strong>Solicitante:</strong> ' . $Solicitante . '<br>
-        <strong>Concepto:</strong> ' . $Concepto . '<br>
-        <strong>Monto:</strong> ' . $Monto . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Fecha:</strong> ' . $Fecha . '<br>
-        <strong>Descripción:</strong> ' . $Descripcion . '<br>
-        <strong>Estado:</strong> ' . $Estado . '<br>
-    <hr>
-    ';
+            <p>Para más detalles y revisar el motivo del rechazo, accede al sistema de viáticos a través del siguiente enlace:</p>
+    
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="https://ingenieria.alenexpenses.com/" style="display: inline-block; background-color: #dc3545; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">📲 Ir al Sistema de Viáticos</a>
+            </p>
+    
+            <p>Saludos cordiales,</p>
+            <p>🤝 El equipo de ALEN</p>
+        </div>';
+    
+    $mail->AltBody = 'Solicitud de Reembolso Rechazada:
+    Solicitante: ' . $Solicitante . '
+    Concepto: ' . $Concepto . '
+    Monto: $' . $Monto . '
+    Destino: ' . $Destino . '
+    Fecha: ' . $Fecha . '
+    Descripción: ' . $Descripcion . '
+    Accede al sistema de viáticos para más detalles: https://ingenieria.alenexpenses.com/';
+    
 
     // Enviar el correo al empleado
     $mail->send();

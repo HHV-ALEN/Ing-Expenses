@@ -116,19 +116,18 @@ $Estados_De_Evidencias = array();
                                     <div class="col-md-12 text-center">
                                 <p></p><strong>Finalizar recopilación de evidencias:</strong></p>
                                 <p>Una vez que finalices, el viático cambiará a estado de Revisión.</p>
-                                <a href="../../resources/Back/Viaticos/FinalizarViatico.php?id=<?php echo $Id_Viatico; ?>"
+                                viaticoEnRevisión.php
+                                <a href="../../resources/Back/Mail/viaticoEnRevisión.php?id=<?php echo $Id_Viatico; ?>"
                                     class="btn btn-success">Finalizar Recopilación de evidencias</a>
-                                    
                                     <?php
-                                }
-                                
+                                }   
                             }
-
                             ?>                        
                     </div>
                 </div>
             </div>
     </div>
+
     <div class="container mt-4">
         <div class="row">
 
@@ -355,7 +354,7 @@ $Estados_De_Evidencias = array();
                                 if (count(array_unique($Estados_De_Evidencias)) === 1 && end($Estados_De_Evidencias) === 'Aceptado') { ?>
                                 <a href="../../resources/Back/Viaticos/CompletarViatico.php?id=<?php echo $Id_Viatico; ?>&Response=Aceptado"
                                     class="btn btn-primary">Finalizar Segunda Recopilación de evidencias</a>
-                                <a href="../../resources/Back/Viaticos/CompletarViatico.php?id=<?php echo $Id_Viatico; ?>&Response=Rechazado"
+                                <a href="../../resources/Back/Viaticos/CompletarViatico.php?id=<?php echo $Id_Viatico; ?>&Response=RechazadoCierre"
                                     class="btn btn-danger">Rechazar y Cerrar Viático</a>
                                 <?php
                             }

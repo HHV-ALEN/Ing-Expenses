@@ -25,12 +25,14 @@ if ($Respuesta == 'Completar') {
         $SQL = "UPDATE verificacion SET Aceptado_Control = 'Completado', Aceptado_Gerente = 'Completado' WHERE Id_Relacionado = $Id_Relacionado AND Tipo = 'Reembolso'";
         $result = $conn->query($SQL);
         if ($result) {
-            echo "Verificación Completada";
+            echo "Verificación Completada<br>";
+            echo $Id_Relacionado;
+            //header ("Location: /resources/Back/Mail/reembolsoAceptado.php?Id=$Id_Relacionado");
         } else {
-            echo "Error al completar la verificación";
+            echo "Error al completar la verificación<br>";
         }
     } else {
-        echo "Error al completar el reembolso";
+        echo "Error al completar el reembolso<br>";
     }
 
     $SQL = "UPDATE reembolsos_anidados SET Estado = 'Completado' WHERE Id = $Id_Relacionado";
@@ -41,8 +43,9 @@ if ($Respuesta == 'Completar') {
         $SQL = "UPDATE verificacion SET Aceptado_Control = 'Completado', Aceptado_Gerente = 'Completado' WHERE Id_Relacionado = $Id_Relacionado AND Tipo = 'Reembolso_Anidado'";
         $result = $conn->query($SQL);
         if ($result) {
-            echo "Verificación Completada";
-            header("Location: ../../../../../../src/Reembolsos/Superior/ListadoReembolsos.php");
+            echo "Verificación Completada<br>";
+            echo $Id_Relacionado . "<br>";
+            header ("Location: /resources/Back/Mail/reembolsoAceptado.php?Id=$Id_Relacionado");
         } else {
             echo "Error al completar la verificación";
         }
@@ -51,9 +54,64 @@ if ($Respuesta == 'Completar') {
         echo "Error al completar el reembolso anidado";
     }
 
-    header("Location: ../../../../../../src/Reembolsos/Superior/ListadoReembolsos.php");
-} else {
+    //header("Location: ../../../../../../src/Reembolsos/Superior/ListadoReembolsos.php");
 
+}elseif ($Respuesta == 'Aceptado' && $Tipo == 'Reembolso'){
+    echo "Entra a Aceptado";
+    // Actualizar el estado del Reembolso Maestro y Regresar a la página del Reembolso 
+    $SQL = "UPDATE reembolsos SET Estado = 'Aceptado' WHERE Id = $Id_Relacionado";
+    $result = $conn->query($SQL);
+    if ($result) {
+        echo "Reembolso Aceptado";
+        header("Location: ../../../../../../src/Reembolsos/ReembolsoAnidado.php?id=$Id_Relacionado");
+    } else {
+        echo "Error al aceptar el reembolso";
+    }
+
+} 
+elseif ($Respuesta == 'Rechazado' && $Tipo == 'Reembolso'){
+    echo "Entra a Rechazar";
+    // Actualizar el estado del Reembolso Maestro y Regresar a la página del Reembolso
+    $SQL = "UPDATE reembolsos SET Estado = 'Rechazado' WHERE Id = $Id_Relacionado";
+    $result = $conn->query($SQL);
+    if ($result) {
+        echo "Reembolso Rechazado";
+        header("Location: ../../../../../../src/Reembolsos/ReembolsoAnidado.php?id=$Id_Relacionado");
+    } else {
+        echo "Error al rechazar el reembolso";
+    }
+}
+
+//// ---------------------------------------------------- Reembolso Anidado ----------------------------------------------------
+if ($Respuesta == 'Aceptado' && $Tipo == 'Reembolso_Anidado'){
+    echo "Entra a Aceptado Reembolso Anidado";
+    // Actualizar el estado del Reembolso Anidado y Regresar a la página del Reembolso
+    $SQL = "UPDATE reembolsos_anidados SET Estado = 'Aceptado' WHERE Id_Reembolso = $Id_Maestro AND Id = $Id_Relacionado";
+    $result = $conn->query($SQL);
+    if ($result) {
+        echo "Reembolso Anidado Aceptado";
+        header("Location: ../../../../../../src/Reembolsos/ReembolsoAnidado.php?id=$Id_Maestro");
+    } else {
+        echo "Error al aceptar el reembolso anidado";
+    }
+}
+elseif ($Respuesta == 'Rechazado' && $Tipo == 'Reembolso_Anidado'){
+    echo "Entra a Rechazar Reembolso Anidado";
+    // Actualizar el estado del Reembolso Anidado y Regresar a la página del Reembolso
+    $SQL = "UPDATE reembolsos_anidados SET Estado = 'Rechazado' WHERE Id_Reembolso = $Id_Maestro AND Id = $Id_Relacionado";
+    $result = $conn->query($SQL);
+    if ($result) {
+        echo "Reembolso Anidado Rechazado";
+        header("Location: ../../../../../../src/Reembolsos/ReembolsoAnidado.php?id=$Id_Maestro");
+    } else {
+        echo "Error al rechazar el reembolso anidado";
+    }
+}
+
+
+
+/*
+else {
     if ($Position == 'Control' && $Tipo == 'Reembolso') {
         echo "Usuario Control - Reembolso <br>";
         if ($Respuesta == 'Aceptado') {
@@ -144,7 +202,7 @@ if ($Respuesta == 'Completar') {
     $sql = "SELECT * FROM verificacion WHERE Id_Relacionado = $Id_Relacionado AND Tipo = '$Tipo'";
     $result = $conn->query($sql);
     $row = $result->fetch_assoc();
-    if ($row['Aceptado_Control'] == 'Aceptado') {
+    if ($row['Aceptado_Control'] == 'Aceptado' || $row['Aceptado_Gerente'] == 'Aceptado') {
         if ($Tipo == 'Reembolso' && $Respuesta == 'Aceptado') {
             $SQL = "UPDATE reembolsos SET Estado = 'Aceptado' WHERE Id = $Id_Relacionado";
         } else {
@@ -157,9 +215,7 @@ if ($Respuesta == 'Completar') {
             echo "<br> Id_Relacionado: " . $Id_Relacionado;
             echo "<br> Tipo: " . $Tipo;
             echo "<br> Respuesta: " . $Respuesta;
-            echo "<br> ************************************************************************+++";
-            //header ("Location: /resources/Back/Mail/reembolsoAceptado.php?Id=$Id_Relacionado");
-
+            echo "<br> ************************************************************************";
 
         } else {
             echo "Error al verificar si el reembolso fue aceptado por control y gerente";
@@ -190,10 +246,10 @@ if ($Respuesta == 'Completar') {
         $Id_Maestro = $Id_Relacionado;
     }
 
-    header("Location: /src/Reembolsos/ReembolsoAnidado.php?id=$Id_Maestro");
+    //header("Location: /src/Reembolsos/ReembolsoAnidado.php?id=$Id_Maestro");
 }
 
-
+*/
 
 //header("Location: ../../../../../../src/Reembolsos/ReembolsoAnidado.php?Id=$Id_Relacionado");
 

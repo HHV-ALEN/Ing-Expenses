@@ -22,6 +22,7 @@ if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     $_SESSION['ID'] = $row['Id'];
     $_SESSION['Name'] = $row['Nombre'];
+    $_SESSION['User'] = $row['Usuario'];
     $_SESSION['Position'] = $row['Puesto'];
     $_SESSION['Mail'] = $row['Correo'];
     $_SESSION['Status'] = $row['Estado'];

@@ -2,100 +2,32 @@
 include('../../../resources/config/db.php');
 session_start();
 
+// Datos de sesión del usuario
 $Tipo_Usuario = $_SESSION['Position'];
-$Nombre_Usuario = $_SESSION['Name'];
-// Configuración de la paginación
-$records_per_page = 10; // Número de registros por página
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1; // Página actual
-$offset = ($page - 1) * $records_per_page; // Cálculo del offset
+$Nickname = $_SESSION['User'];
+$Nombre_Gerente = trim($_SESSION['Name']); // Nombre del gerente (limpiamos espacios)
 
-$Nombre_Gerente = trim($_SESSION['Name']); // Asegúrate de eliminar espacios accidentales
-
-// Obtener el valor del filtro de Folio de Venta desde el formulario
-$Orden_Venta = isset($_GET['Orden_Venta']) ? $_GET['Orden_Venta'] : '';
-
-// Construir la consulta SQL base para los viáticos
+// Construir la consulta SQL base
 $sql_query = "
-    SELECT r.* 
-    FROM reembolsos r
-    JOIN usuarios u ON TRIM(r.Solicitante) = TRIM(u.Nombre)
-    WHERE TRIM(u.Gerente) = ?
-";
+    SELECT * 
+    FROM reembolsos ";
 
-// Si se ha introducido un folio de venta, agregar el filtro
-if (!empty($Orden_Venta)) {
-    $sql_query .= " AND r.Orden_Venta LIKE ?";
-}
+/// Ejecutar la consulta SQL
+$result = $conn->query($sql_query);
 
-// Agregar la paginación y el orden
-$sql_query .= " ORDER BY r.Id DESC LIMIT ?, ?";
+$records_per_page = 10; // Número de registros por página
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$offset = ($page - 1) * $records_per_page;
 
-// Preparar la consulta
-$stmt = $conn->prepare($sql_query);
-
-// Verificar si la consulta fue preparada correctamente
-if (!$stmt) {
-    die("Error en la consulta SQL: " . $conn->error);
-}
-
-// Manejar el valor para el LIKE del folio de venta
-$like_folio = "%$Orden_Venta%";
-
-// Asignar los parámetros según si hay un filtro o no
-if (!empty($Orden_Venta)) {
-    $stmt->bind_param("ssii", $Nombre_Gerente, $like_folio, $offset, $records_per_page);
-} else {
-    $stmt->bind_param("sii", $Nombre_Gerente, $offset, $records_per_page);
-}
-
-// Ejecutar la consulta y obtener los resultados
-$stmt->execute();
-$result = $stmt->get_result();
-
-// Verificar si la consulta tuvo resultados
-if (!$result) {
-    die("Error en la ejecución: " . $stmt->error);
-}
-
-// ------------------------
-// Contar el total de registros (con filtro si aplica)
-// ------------------------
-
-$total_records_query = "
-    SELECT COUNT(*) AS total_registros 
-    FROM reembolsos r
-    JOIN usuarios u ON TRIM(r.Solicitante) = TRIM(u.Nombre)
-    WHERE TRIM(u.Gerente) = ?
-";
-
-// Si se ha introducido un folio de venta, agregar el filtro
-if (!empty($Orden_Venta)) {
-    $total_records_query .= " AND r.Orden_Venta LIKE ?";
-}
-
-// Preparar la consulta para contar los registros
-$stmt_count = $conn->prepare($total_records_query);
-
-// Verificar si la consulta fue preparada correctamente
-if (!$stmt_count) {
-    die("Error en la consulta SQL para el conteo: " . $conn->error);
-}
-
-// Asignar los parámetros según si hay un filtro o no
-if (!empty($Orden_Venta)) {
-    $stmt_count->bind_param("ss", $Nombre_Gerente, $like_folio);
-} else {
-    $stmt_count->bind_param("s", $Nombre_Gerente);
-}
-
-// Ejecutar la consulta de conteo
-$stmt_count->execute();
-$total_records_result = $stmt_count->get_result();
-$total_records_row = $total_records_result->fetch_assoc();
-$total_records = $total_records_row['total_registros'];
-
-// Calcular el número total de páginas
+$count_query = "SELECT COUNT(*) AS total FROM reembolsos";
+$count_result = $conn->query($count_query);
+$total_records = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_records / $records_per_page);
+
+$sql_query = "SELECT * FROM reembolsos ORDER BY Id DESC LIMIT $offset, $records_per_page";
+$result = $conn->query($sql_query);
+
+
 ?>
 
 <!DOCTYPE html>
@@ -108,8 +40,6 @@ $total_pages = ceil($total_records / $records_per_page);
     <link rel="shortcut icon" href="/resources/img/logo-icon.png" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
-
 </head>
 
 <body>
@@ -216,6 +146,10 @@ $total_pages = ceil($total_records / $records_per_page);
                                                 echo "<td></td>";
                                                 echo "<td></td>";
                                             } elseif ($row['Estado'] == 'Rechazado') {
+                                                echo "<td class='text-center'><a href='../ReembolsoAnidado.php?id=" . $row['Id'] . "' class='btn btn-info'>Ver Detalles</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                            } elseif ($row['Estado'] == 'Completado') {
                                                 echo "<td class='text-center'><a href='../ReembolsoAnidado.php?id=" . $row['Id'] . "' class='btn btn-info'>Ver Detalles</a></td>";
                                                 echo "<td></td>";
                                                 echo "<td></td>";

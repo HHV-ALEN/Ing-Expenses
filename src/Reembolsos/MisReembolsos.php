@@ -193,6 +193,10 @@ $total_pages = ceil($total_records / $records_per_page);
                                                 echo "<td class='text-center'><a href='/src/Reembolsos/ReembolsoAnidado.php?id=" . $row['Id'] . "' class='btn btn-info'>Ver Detalles</a></td>";
                                                 echo "<td></td>";
                                                 echo "<td></td>";
+                                            } elseif ($row['Estado'] == 'Completado'){
+                                                echo "<td class='text-center'><a href='/src/Reembolsos/ReembolsoAnidado.php?id=" . $row['Id'] . "' class='btn btn-info'>Ver Detalles</a></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
                                             }
 
                                         }

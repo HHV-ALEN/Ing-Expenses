@@ -81,99 +81,57 @@ try {
 
     // Configurar el correo para el gerente
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente); 
+    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
-    $mail->Subject = 'Nueva solicitud de Reembolso de ' . $Nombre_Solicitante;
-    $mail->Body = '
-    <p>Estimado ' . $NombreGerente . ',</p>
-
-    <p>Se ha registrado una nueva solicitud de ' . $Nombre_Solicitante . ' para Reembolso con la siguiente información:</p>
-    
-    <hr>
-    <p>
-        <strong>Solicitante:</strong> ' . $Solicitante . '<br>
-        <strong>Concepto:</strong> ' . $Concepto . '<br>
-        <strong>Monto:</strong> ' . $Monto . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Fecha:</strong> ' . $Fecha . '<br>
-        <strong>Descripcion:</strong> ' . $Descripcion . '<br>
-        <strong>Estado:</strong> ' . $Estado . '<br>
-    </p>
-
-    <p>Por favor, revise el sistema para proceder con su aprobación.</p>
-    
-    <p>Para más detalles y seguimiento de la solicitud, acceda al aplicativo a través del siguiente enlace:</p>
-    
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos Ingenieria</a></p>
-    
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
-
-    $mail->AltBody = 'Nueva Solicitud de Reembolso de ' . $Nombre_Solicitante . ':
-    Solicitante: ' . $Solicitante . '
-    Concepto: ' . $Concepto . '
-    Monto: ' . $Monto . '
-    Destino: ' . $Destino . '
-    Fecha: ' . $Fecha . '
-    Descripcion: ' . $Descripcion . '
-    Estado: ' . $Estado . '
-    Por favor, revise el sistema para proceder con su aprobación. Para más detalles y seguimiento de la solicitud, acceda al aplicativo.';
-
-    // Enviar el correo al gerente
-    $mail->send();
-
-    // Reiniciar las propiedades del correo para el próximo envío
-    $mail->clearAddresses();
-    $mail->clearAttachments();
-
     // Configurar el correo para el empleado
-    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Solicitud de Reembolso Registrada';
-    $mail->Body = '
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
 
-    <p>Tu solicitud de reembolso ha sido registrada exitosamente con la siguiente información:</p>
-    
-    <hr>
-    <p>
-        <strong>Concepto:</strong> ' . $Concepto . '<br>
-        <strong>Monto:</strong> ' . $Monto . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Fecha:</strong> ' . $Fecha . '<br>
-        <strong>Descripcion:</strong> ' . $Descripcion . '<br>
-        <strong>Estado:</strong> ' . $Estado . '<br>
-    </p>
+    $mail->Subject = '💸 Solicitud de Reembolso Registrada';
+$mail->Body = '
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
 
+        <p>✅ Tu solicitud de reembolso ha sido registrada exitosamente con la siguiente información:</p>
 
-    <p>El gerente ' . $NombreGerente . ' ha sido notificado para su aprobación.</p>
-    
-    <p>Para más detalles y seguimiento de tu solicitud, accede al aplicativo a través del siguiente enlace:</p>
-    
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-    
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
+        <div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 10px; margin: 10px 0;">
+            <p style="margin: 5px 0;">📝 <strong>Concepto:</strong> ' . $Concepto . '</p>
+            <p style="margin: 5px 0;">💵 <strong>Monto:</strong> $' . $Monto . '</p>
+            <p style="margin: 5px 0;">📍 <strong>Destino:</strong> ' . $Destino . '</p>
+            <p style="margin: 5px 0;">📅 <strong>Fecha:</strong> ' . $Fecha . '</p>
+            <p style="margin: 5px 0;">🖊️ <strong>Descripción:</strong> ' . $Descripcion . '</p>
+            <p style="margin: 5px 0;">📋 <strong>Estado:</strong> ' . $Estado . '</p>
+        </div>
 
-    $mail->AltBody = ' Nueva Solicitud de Reembolso de ' . $Nombre_Solicitante . ':
-    Concepto: ' . $Concepto . '
-    Monto: ' . $Monto . '
-    Destino: ' . $Destino . '
-    Fecha: ' . $Fecha . '
-    Descripcion: ' . $Descripcion . '
-    Estado: ' . $Estado . '
-    El gerente ' . $NombreGerente . ' ha sido notificado para su aprobación. Para más detalles y seguimiento de tu solicitud, accede al aplicativo.';
+        <p>👤 El gerente <strong>' . $NombreGerente . '</strong> ha sido notificado para su aprobación.</p>
+        
+        <p>🔗 Para más detalles y seguimiento de tu solicitud, accede al aplicativo a través del siguiente enlace:</p>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="https://ingenieria.alenexpenses.com/" style="display: inline-block; background-color: #007bff; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">🚀 Ir al Sistema de Viáticos</a>
+        </p>
+        
+        <p>Saludos cordiales,</p>
+        <p>🤝 El equipo de ALEN</p>
+    </div>';
+
+$mail->AltBody = 'Nueva Solicitud de Reembolso de ' . $Nombre_Solicitante . ':
+Concepto: ' . $Concepto . '
+Monto: $' . $Monto . '
+Destino: ' . $Destino . '
+Fecha: ' . $Fecha . '
+Descripción: ' . $Descripcion . '
+Estado: ' . $Estado . '
+El gerente ' . $NombreGerente . ' ha sido notificado para su aprobación. Para más detalles y seguimiento de tu solicitud, accede al aplicativo.';
 
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
     header('Location: /src/Reembolsos/ReembolsoAnidado.php?id=' . $Id_Reembolso);
+
+    
     
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
 
 ?>
-
-
-

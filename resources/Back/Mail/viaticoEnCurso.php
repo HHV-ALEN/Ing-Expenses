@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 include '../../config/db.php';
 session_start();
@@ -92,43 +92,44 @@ try {
     $mail->Password = "A1enM4IL."; //SMTP password
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
     $mail->Port = 587; //TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
-    
+
     // Configurar la codificación del correo
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
     // Configurar el correo para el empleado
+    $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
     $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Tu Solicitud de Viáticos ha sido Puesto en Curso';
+    $mail->Subject = '🚀 Tu Solicitud de Viáticos ha Iniciado su Curso';
     $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
+        <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="text-align: center; color: #007bff;">🌍 Proceso de Viáticos en Curso</h2>
+            <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
 
-    <p>Tu solicitud de viáticos ha iniciado su curso con la siguiente información:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
+            <p>Nos complace informarte que tu solicitud de viáticos ha sido puesta en curso. Aquí está la información de tu viaje:</p>
+            
+            <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td>🗓️ <strong>Fecha de Salida:</strong></td><td>' . $Fecha_Salida . '</td></tr>
+                <tr><td>⏰ <strong>Hora de Salida:</strong></td><td>' . $Hora_Salida . '</td></tr>
+                <tr><td>🗓️ <strong>Fecha de Regreso:</strong></td><td>' . $Fecha_Regreso . '</td></tr>
+                <tr><td>⏰ <strong>Hora de Regreso:</strong></td><td>' . $Hora_Regreso . '</td></tr>
+                <tr><td>📄 <strong>Orden de Venta:</strong></td><td>' . $Orden_Venta . '</td></tr>
+                <tr><td>🔑 <strong>Código:</strong></td><td>' . $Codigo . '</td></tr>
+                <tr><td>📍 <strong>Destino:</strong></td><td>' . $Destino . '</td></tr>
+                <tr><td>💰 <strong>Monto Total Solicitado:</strong></td><td>' . $Total . '</td></tr>
+            </table>
 
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+            <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
+            <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
 
-    ';
+            <p>Saludos cordiales,</p>
+            <p><em>El equipo de ALEN</em></p>
+        </div>';
 
     $mail->AltBody = '
-    
     Tu solicitud de viáticos ha iniciado su curso con la siguiente información:
     Fecha de Salida: ' . $Fecha_Salida . '
     Hora de Salida: ' . $Hora_Salida . '
@@ -136,27 +137,20 @@ try {
     Hora de Regreso: ' . $Hora_Regreso . '
     Orden de Venta: ' . $Orden_Venta . '
     Código: ' . $Codigo . '
-    Destino: ' . $Destino .
-    'Monto Total Solicitado: ' . $Total . '
-    ';
-    
+    Destino: ' . $Destino . '
+    Monto Total Solicitado: ' . $Total . '
+    Para más detalles y seguimiento, accede a: https://ingenieria.alenexpenses.com/';
+
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
-    
-    if($Position == 'Empleado'){
-        header("Location: /src/Viaticos/MisViaticos.php");
 
-    } elseif ($Position == 'Control'){
-        header("Location: /src/Viaticos/Superior/ListadoViaticos.php");
-    } elseif ($Position == 'Gerente'){
-        header("Location: /src/Viaticos/Superior/Viaticos_AMiCargo.php");
-    }
-    
+    // Enviar al apartado de SubirEvidencias
+    //header("Location: ../../../src/Viaticos/SubirEvidencias.php?id=$Id_Viatico");
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
-
 
 
 ?>

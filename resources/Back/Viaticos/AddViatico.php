@@ -3,10 +3,12 @@ echo "------------- AddViatico.php -------------<br>";
 require('../../config/db.php');
 session_start();
 // Información de a sesion:
-echo "Usuario: ".$_SESSION['Name']."<br>";
-echo "Puesto: ".$_SESSION['Position']."<br>";
 $Nombre_Solicitante = $_SESSION['Name'];
 $TipoUsuario = $_SESSION['Position'];
+
+echo "Solicitante: $Nombre_Solicitante<br>";
+echo "Tipo de usuario: $TipoUsuario<br>";
+
 
 echo "<br>------------- Solicitud de Viático -------------<br>";
 
@@ -50,9 +52,6 @@ $Addition = $Materiales + $GastosMedicos + $Equipos + $Monto_Concepto + $Hospeda
 
  // Inicializa un array vacío para almacenar los acompañantes
  $acompanantes = [];
-
-
-
 
 /// Imprimir los clientes 
 
@@ -323,8 +322,6 @@ foreach ($clientes as $cliente) {
     echo "<br>------------------------<br>";
 }
 
-
-
 $Gastos_Array = [];
 foreach ($conceptos as $index => $concepto) {
     // Limita el bucle a los primeros 4 elementos
@@ -375,10 +372,6 @@ foreach ($Acompanantes_Array as $acompanante) {
     $row++;
 }
 
-/// El nombre del archivo sera conformado del Id del viatico + - + Orden de venta + - + Código + - + - + Nombre del proyecto
-
-
-
 // Guardar el archivo
 // Crear Nombre para el archivo en base al nombre del solicitante y el id del viático + la fecha de hoy
 $Nombre_Archivo = 'Viaticos-' . $Id_Viatico.'-'.$Nombre_Proyecto.'.xlsx';
@@ -399,11 +392,11 @@ if($Result_Archivo){
 
 echo "<br>-------------------------------------------------------------------------<br>";
 
-//header('Location: ../Mail/NewViatico.php?Id='.$Id_Viatico.'&Archivo='.$Nombre_Archivo);
+header('Location: ../Mail/NewViatico.php?Id='.$Id_Viatico.'&Archivo='.$Nombre_Archivo);
 
 //header('Location: ../Notificaciones.php?Id='.$Id_Viatico.'&Name='.$Nombre_Solicitante.'&Request=Registro&Archivo='.$Nombre_Archivo);
 
 
-header("Location: ../../../../../src/Viaticos/MisViaticos.php");
+//header("Location: ../../../../../src/Viaticos/MisViaticos.php");
 
 ?>

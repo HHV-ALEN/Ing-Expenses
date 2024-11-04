@@ -11,7 +11,7 @@ if($Response == 'Aceptado'){
     $sql = "UPDATE viaticos SET Estado = 'Completado' WHERE Id = $id";
     if ($conn->query($sql) === TRUE) {
         echo "Record updated successfully";
-        header("Location: /resources/Back/Mail/viaticoCompletado.php?Id=$id");
+        header("Location: ../../../../../resources/Back/Mail/viaticoCompletado.php?Id=$id");
     } else {
         echo "Error updating record: " . $conn->error;
     }
@@ -35,7 +35,9 @@ elseif ($Response == 'Rechazado') {
         // Limpiar las evidencias cuando el viático entra en prórroga
         $sql_delete_evidencias = "DELETE FROM evidencias WHERE Id_Relacionado = $id AND Tipo = 'Evidencia' AND Estado = 'Pendiente' Or Estado = 'Rechazado'";
         if ($conn->query($sql_delete_evidencias) === TRUE) {
-            echo "Record updated successfully";
+            // Mandar Correo al solicitante para notificar que el viático fue rechazado y que entro a prorroga
+            header("Location: ../../../../../resources/Back/Mail/viaticoRechazado.php?Id=$id");
+
         } else {
             echo "Error updating record: " . $conn->error;
         }
@@ -43,13 +45,15 @@ elseif ($Response == 'Rechazado') {
         echo "Error updating record: " . $conn->error;
     }
 
-}
-
-
-if ($TipoUsuario == 'Gerente') {
-    header("Location: ../../../../../src/Viaticos/Superior/Viaticos_AMiCargo.php");
-} else {
-    header("Location: ../../../../../src/Viaticos/Superior/ListadoViaticos.php");
+} elseif ($Response == 'RechazadoCierre')
+{
+    $sql = "UPDATE viaticos SET Estado = 'Rechazado' WHERE Id = $id";
+    if ($conn->query($sql) === TRUE) {
+        echo "Record updated successfully";
+        header("Location: ../../../../../resources/Back/Mail/viaticoRechazado.php?Id=$id");
+    } else {
+        echo "Error updating record: " . $conn->error;
+    }
 }
 
 ?>

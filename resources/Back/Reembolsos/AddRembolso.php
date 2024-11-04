@@ -148,7 +148,7 @@ echo "<br>Id Reembolso: $Id_Reembolso <br>";
         }
         echo "<br>-------------------------------------------------------------------------<br>";
     
-        ///header("Location: ../Mail/NewReembolso.php?Id=$Id_Reembolso"); 
+        header("Location: ../Mail/NewReembolso.php?Id=$Id_Reembolso"); 
         
 
         header('Location: ../../../../../src/Reembolsos/ReembolsoAnidado.php?id='.$Id_Reembolso.'');

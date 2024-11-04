@@ -84,9 +84,6 @@ procesarConcepto($conn, $id_viatico, $id_usuario, $id_Gerente, $resultRestaHospe
 procesarConcepto($conn, $id_viatico, $id_usuario, $id_Gerente, $resultRestaCasetas, 'Casetas');
 procesarConcepto($conn, $id_viatico, $id_usuario, $id_Gerente, $resultRestaAlimentos, 'Alimentos');
 
-# Actualizar el estado del viático y redirigir
-$sql_query = "UPDATE viaticos SET Estado = 'EnEspera' WHERE Id = '$id_viatico'";
-$conn->query($sql_query);
 header("Location: ../../../../../src/Viaticos/misViaticos.php");
 
 ?>*/

@@ -19,7 +19,7 @@ if (mysqli_num_rows($Result) > 0) {
         //echo "<br>--- Nombre del Proyecto: " . $Row['Nombre_Proyecto'];
         //echo "<br>--- Estado: " . $Row['Estado'];
 
-        $SQL_Update = "UPDATE viaticos SET Estado = 'En Curso' WHERE Id = $Id";
+        $SQL_Update = "UPDATE viaticos SET Estado = 'EnCurso' WHERE Id = $Id";
         $Result_Update = mysqli_query($conn, $SQL_Update);
         if ($Result_Update) {
             /// Enviar correo al solicitante para notificar que su viático se encuentra en curso

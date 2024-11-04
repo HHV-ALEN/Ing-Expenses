@@ -1,6 +1,5 @@
 <!-- Inicio de la barra de navegación -->
 <?php 
-session_start();
 if (!isset($_SESSION['Name']) || !isset($_SESSION['Position'])) {
     //echo "Sesión no iniciada correctamente.";
 } else {

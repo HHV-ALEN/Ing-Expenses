@@ -80,7 +80,7 @@ try {
     
     <p>Solicite al empleado ' . $NombreUsuario . ' para recibir el monto</p>
     
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+    <p><a href="https://ingenieria.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
     
     <p>Saludos cordiales,</p>
     <p>El equipo de ALEN</p>';
@@ -118,7 +118,7 @@ try {
     
      <p>Para más detalles y seguimiento ponganse en contacto con el responsable para recibir el monto:</p>
     
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+    <p><a href="https://ingenieria.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
     
     <p>Saludos cordiales,</p>
     <p>El equipo de ALEN</p>';

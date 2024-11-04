@@ -1,4 +1,4 @@
-<?php 
+<?php
 include '../../resources/config/db.php';
 session_start();
 $Id_Viatico = $_GET['id'];
@@ -111,6 +111,7 @@ switch ($Aceptado_Control) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -120,41 +121,42 @@ switch ($Aceptado_Control) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
 </head>
+
 <body>
-    <?php include '../../src/navbar.php'?>
+    <?php include '../../src/navbar.php' ?>
 
     <!-- Tarjeta para el usuario Gerente y Control para aceptar o rechazar el viático -->
-     <?php
+    <?php
 
-     /// Obtener información de la Tabla verificación para mostrar los botones de aceptar o rechazar
+    /// Obtener información de la Tabla verificación para mostrar los botones de aceptar o rechazar
+    
+    $Sql_Verificadores = "SELECT * FROM verificacion WHERE Id_Relacionado = $Id_Viatico AND Tipo = 'Viatico'";
+    $Result_Verificadores = $conn->query($Sql_Verificadores);
+    $Row_Verificadores = $Result_Verificadores->fetch_assoc();
+    $Aceptado_Gerente = $Row_Verificadores['Aceptado_Gerente'];
+    $Aceptado_Control = $Row_Verificadores['Aceptado_Control'];
 
-     $Sql_Verificadores = "SELECT * FROM verificacion WHERE Id_Relacionado = $Id_Viatico AND Tipo = 'Viatico'";
-        $Result_Verificadores = $conn->query($Sql_Verificadores);
-        $Row_Verificadores = $Result_Verificadores->fetch_assoc();
-        $Aceptado_Gerente = $Row_Verificadores['Aceptado_Gerente'];
-        $Aceptado_Control = $Row_Verificadores['Aceptado_Control'];
-        
-        echo "<script>console.log('Debug Objects: " . $Aceptado_Gerente . "' );</script>";
+    echo "<script>console.log('Debug Objects: " . $Aceptado_Gerente . "' );</script>";
 
 
-        if ($Aceptado_Control == 'Pendiente' && $_SESSION['Position'] == 'Gerente') {
-            if (($_SESSION['Position'] == 'Gerente' || $_SESSION['Position'] == 'Control') && $Estado == 'Abierto') {
-                echo '<div class="container mt-5">
+    if ($Aceptado_Control == 'Pendiente' && $_SESSION['Position'] == 'Gerente') {
+        if (($_SESSION['Position'] == 'Gerente' || $_SESSION['Position'] == 'Control') && $Estado == 'Abierto') {
+            echo '<div class="container mt-5">
         
                 <div class="card">
                     <div class="card-header bg-outline-primary text-Dark">
-                        <h5 class="card-title text-center">Aceptación de la Solicitud - Estado:<strong> '. $Estado .' </strong></h5>
+                        <h5 class="card-title text-center">Aceptación de la Solicitud - Estado:<strong> ' . $Estado . ' </strong></h5>
                         
                     </div>
                     <div class="card-body">
                         <div class="row">
         
                             <div class="col-md-6 text-center">
-                                <p><strong>Gerente:</strong> <span id="aceptadoGerente">'. $Aceptado_Gerente .'</span></p>
+                                <p><strong>Gerente:</strong> <span id="aceptadoGerente">' . $Aceptado_Gerente . '</span></p>
         
                             </div>
                             <div class="col-md-6 text-center">
-                                <p><strong>Control:</strong> <span id="aceptadoControl">'. $Aceptado_Control .'</span></p>
+                                <p><strong>Control:</strong> <span id="aceptadoControl">' . $Aceptado_Control . '</span></p>
                                 </div>
                         </div>
                         <div class="mb-3 text-center">
@@ -164,7 +166,7 @@ switch ($Aceptado_Control) {
                                         <p>(Aun no aceptado por el Usuario Control)</p>
                                 </div>
                                 <div class="col-md-6">
-                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id='. $Id_Viatico .'&Estado=Rechazado" class="btn btn-danger btn-block">
+                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id=' . $Id_Viatico . '&Estado=Rechazado" class="btn btn-danger btn-block">
                                         Rechazar Solicitud
                                     </a>
                                 </div>
@@ -174,56 +176,48 @@ switch ($Aceptado_Control) {
         
                 </div>
             </div>';
-                }
-        } else {
+        }
+    } else {
 
-            if (($_SESSION['Position'] == 'Gerente' || $_SESSION['Position'] == 'Control') && $Estado == 'Abierto') {
-                echo '<div class="container mt-5">
-            
+        if (($_SESSION['Position'] == 'Gerente' || $_SESSION['Position'] == 'Control') && $Estado == 'Abierto') {
+            echo '<div class="container mt-5">
                 <div class="card">
-                    <div class="card-header bg-outline-primary text-Dark">
-                        <h5 class="card-title text-center">Aceptación de la Solicitud - Estado:<strong> '. $Estado .' </strong></h5>
+                    <div class="card-header bg-outline-primary text-dark">
+                        <h5 class="card-title text-center">Aceptación de la Solicitud - Estado: <strong><?php echo $Estado; ?></strong></h5>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-            
-                            <div class="col-md-6 text-center">
-                                <p><strong>Gerente:</strong> <span id="aceptadoGerente">'. $Aceptado_Gerente .'</span></p>
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <div class="row w-100">
+                            <!-- Column for Gerente and Control -->
+                            <div class="col-md-6 d-flex flex-column justify-content-center align-items-center mb-3">
+                                <p><strong>Gerente:</strong> <span id="aceptadoGerente">' . $Aceptado_Gerente . '</span></p>
+                                <p><strong>Control:</strong> <span id="aceptadoControl">' . $Aceptado_Control . '</span></p>
                             </div>
-                            <div class="col-md-6 text-center">
-                                <p><strong>Control:</strong> <span id="aceptadoControl">'. $Aceptado_Control .'</span></p>
-                            </div>
-                        </div>
-                        <div class="mb-3 text-center">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id='. $Id_Viatico .'&Estado=Aceptado" class="btn btn-success btn-block">
-                                        Aceptar Solicitud
-                                    </a>
-                                </div>
-                                <div class="col-md-6">
-                                    <a href="../../resources/Back/Viaticos/VerificationViatico.php?id='. $Id_Viatico .'&Estado=Rechazado" class="btn btn-danger btn-block">
-                                        Rechazar Solicitud
-                                    </a>
-                                </div>
+
+                            <!-- Column for Buttons -->
+                            <div class="col-md-6 d-flex flex-column justify-content-center align-items-center">
+                                <a href="../../resources/Back/Viaticos/VerificationViatico.php?id=' . $Id_Viatico . '&Estado=Aceptado"
+                                class="btn btn-success w-75 mb-2">
+                                    Aceptar Solicitud
+                                </a>
+                                <a href="../../resources/Back/Viaticos/VerificationViatico.php?id=' . $Id_Viatico . '&Estado=Rechazado"
+                                class="btn btn-danger w-75">
+                                    Rechazar Solicitud
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>';
-            }
-            
-
-
         }
-     ?>
+    }
+    ?>
 
     <div class="container mt-5">
         <div class="row">
-        <!-- Card de la parte de Izquierda -->
-        <div class="col-md-6 mb-3">
+            <!-- Card de la parte de Izquierda -->
+            <div class="col-md-6 mb-3">
                 <div class="card">
-                <?php
+                    <?php
                     // PHP code to determine the class based on the status
                     $headerClass = ''; // Default class
                     
@@ -255,20 +249,23 @@ switch ($Aceptado_Control) {
                     }
                     ?>
                     <div class="card-header card-header-custom <?php echo $headerClass ?> text-white">
-                        <h5 class="card-title text-center "><i class="fas fa-info-circle"></i> Detalles del Viático No.  <?php echo $Id_Viatico; ?></h5>
+                        <h5 class="card-title text-center "><i class="fas fa-info-circle"></i> Detalles del Viático No.
+                            <?php echo $Id_Viatico; ?>
+                        </h5>
                     </div>
 
                     <div class="card-body">
                         <div class="mb-3">
-                            <p><strong>Fecha de Solicitud:</strong> <span id="fechaSolicitud"><?= $Fecha_Registro ?></span></p>
+                            <p><strong>Fecha de Solicitud:</strong> <span
+                                    id="fechaSolicitud"><?= $Fecha_Registro ?></span></p>
                             <p><strong>Días Solicitados:</strong> <span><?php
-                                $datetime1 = new DateTime($Fecha_Salida);
-                                $datetime2 = new DateTime($Fecha_Regreso);
-                                $interval = $datetime1->diff($datetime2);
-                                $days = $interval->days; // Obtiene la diferencia en días
-                                
-                                // Si los días son 0, muestra 1
-                                echo $days == 0 ? '1 día' : $days . ' días';
+                            $datetime1 = new DateTime($Fecha_Salida);
+                            $datetime2 = new DateTime($Fecha_Regreso);
+                            $interval = $datetime1->diff($datetime2);
+                            $days = $interval->days; // Obtiene la diferencia en días
+                            
+                            // Si los días son 0, muestra 1
+                            echo $days == 0 ? '1 día' : $days . ' días';
                             ?></span></p>
                         </div>
 
@@ -314,11 +311,14 @@ switch ($Aceptado_Control) {
                                 </thead>
                                 <tbody>
                                     <?php
+                                    $MontoTotal = 0;
                                     foreach ($conceptos as $concepto => $monto) {
                                         echo "<tr>";
                                         echo "<td>$concepto</td>";
                                         echo "<td>$ $monto</td>";
                                         echo "</tr>";
+                                        $MontoTotal += $monto;
+
                                     }
                                     ?>
                                 </tbody>
@@ -327,8 +327,8 @@ switch ($Aceptado_Control) {
                             <div class="row text-center">
                                 <div class="mb-3 text-center">
                                     <p class="text-center">
-                                        <strong style="margin-right: 5px;">Monto Total Solicitado:</strong> 
-                                        <span>$ <?= $Total ?></span>
+                                        <strong style="margin-right: 5px;">Monto Total Solicitado:</strong>
+                                        <span>$ <?= $MontoTotal ?></span>
                                     </p>
                                 </div>
                             </div>
@@ -339,21 +339,23 @@ switch ($Aceptado_Control) {
             <div class="col-md-6 mb-3">
                 <div class="card">
                     <div class="card-header card-header-custom <?php echo $headerClass ?> text-white">
-                        <h5 class="card-title text-center"><i class="fas fa-map-marker-alt"></i>Estado: <?php echo $Estado ?></h5>
+                        <h5 class="card-title text-center"><i class="fas fa-map-marker-alt"></i>Estado:
+                            <?php echo $Estado ?>
+                        </h5>
                         <hr>
                         <div class="text-center">
-                            <?php 
-                                /// Consultar Nombre del archivo para descagar
-                                $sql = "SELECT * FROM resumen_solicitud WHERE Id_Viatico = $Id_Viatico";
-                                $result = $conn->query($sql);
-                                $row = $result->fetch_assoc();
-                                $Nombre_Archivo = $row['Nombre'];
-                                $Ruta = '../../uploads/files/' . $Nombre_Archivo;
+                            <?php
+                            /// Consultar Nombre del archivo para descagar
+                            $sql = "SELECT * FROM resumen_solicitud WHERE Id_Viatico = $Id_Viatico";
+                            $result = $conn->query($sql);
+                            $row = $result->fetch_assoc();
+                            $Nombre_Archivo = $row['Nombre'];
+                            $Ruta = '../../uploads/files/' . $Nombre_Archivo;
                             ?>
                             <a href="<?php echo $Ruta ?>" class="btn <?php echo $ButtonColor ?> ">Descargar Formato</a>
                         </div>
                     </div>
-                    
+
                     <div class="card-body">
                         <div class="mb-3">
                             <p><strong>Orden de Venta:</strong> <span><?= $Orden_Venta ?></span></p>
@@ -372,21 +374,21 @@ switch ($Aceptado_Control) {
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><?php 
+                                    <td><?php
                                     if (empty($destino['Estado'])) {
                                         echo 'No especificado';
                                     } else {
                                         echo $destino['Estado'];
                                     }
-                                    
-                                     ?></td>
-                                    <td><?php 
+
+                                    ?></td>
+                                    <td><?php
                                     if (empty($destino['Ciudad'])) {
                                         echo 'No especificado';
                                     } else {
                                         echo $destino['Ciudad'];
                                     }
-                                     ?></td>
+                                    ?></td>
                                     </td>
                                 </tr>
                             </tbody>
@@ -425,21 +427,22 @@ switch ($Aceptado_Control) {
                                     ?>
                                 </tbody>
                             </table>
-                            
-                        
 
+
+
+                        </div>
                     </div>
                 </div>
+
             </div>
-            
         </div>
-    </div>
 
         <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
 </body>
+
 </html>

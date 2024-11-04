@@ -2,16 +2,16 @@
 /// Variables para el entorno Local:
 /// Definir las constantes de la base de datos
 
-//define('DB_SERVER', 'localhost');
-//define('DB_USERNAME', 'root');
-//define('DB_PASSWORD', '');
-//define('DB_NAME', 'alenexpensesing');
+define('DB_SERVER', 'localhost');
+define('DB_USERNAME', 'root');
+define('DB_PASSWORD', '');
+define('DB_NAME', 'alenexpensesing');
 
 /// - Entorno Publico
-define('DB_SERVER', '127.0.0.1:3306');
-define('DB_USERNAME', 'u617278495_Alen_I');
-define('DB_PASSWORD', 'Alen.2024');
-define('DB_NAME', 'u617278495_AlenViaticos_I');
+//define('DB_SERVER', '127.0.0.1:3306');
+//define('DB_USERNAME', 'u617278495_Alen_I');
+//define('DB_PASSWORD', 'Alen.2024');
+//define('DB_NAME', 'u617278495_AlenViaticos_I');
 
 
 

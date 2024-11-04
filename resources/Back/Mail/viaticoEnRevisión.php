@@ -1,11 +1,34 @@
-<?php 
+<?php
 include '../../config/db.php';
 session_start();
 
-$Id_Viatico = $_GET['Id'];
+echo "Si esta entrando a la página correcta";
+
+$Id_Viatico = $_GET['id'];
 
 echo "VIATICO EN ESTADO DE REVISÓN <br> Id_Viatico: " . $Id_Viatico;
 
+    /// Se cambiara el estado del viatico a Revisión:
+    echo "<br> Cambiando estado del viatico a Revisión <br>";
+    echo "<br> Id del viatico: $Id_Viatico <br>";
+$Update_Viatico = "UPDATE viaticos SET Estado = 'Revisión' WHERE Id = '$Id_viatico'";
+$Result_Update_Viatico = mysqli_query($conn, $Update_Viatico);
+if($Result_Update_Viatico){
+    echo "<br> Estado del viatico cambiado a Revisión<br>";
+}else{
+    echo "<br> Error al cambiar el estado del viatico a Revisión";
+}
+
+/// Verificar que se guardo el cambio de estado
+$ViaticoQuery = "SELECT * FROM viaticos WHERE Id = $Id_Viatico";
+$ViaticoQueryResult = $conn->query($ViaticoQuery);
+if ($ViaticoQueryResult->num_rows > 0) {
+    $row = $ViaticoQueryResult->fetch_assoc();
+    $Estado = $row['Estado'];
+    echo "<br> Estado del viatico: $Estado <br>";
+} else {
+    echo "Error en la consulta: " . mysqli_error($conn);
+}
 
 // Importación de clases de PHPMailer
 use PHPMailer\PHPMailer\PHPMailer;
@@ -80,6 +103,9 @@ echo "Nombre del proyecto: $Nombre_Proyecto<br>";
 echo "Destino: $Destino<br>";
 echo "Total: $Total<br>";
 
+
+
+
 $mail = new PHPMailer(true);
 
 try {
@@ -100,37 +126,39 @@ try {
 
     // Configurar el correo para el gerente
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente); 
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
-    $mail->Subject = ' El viático de ' . $Nombre_Solicitante . ' ha entrado a Revisión';
+    // Configurar el correo para el Solicitante
+    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
+    $mail->Subject = '📋 Tu Solicitud de Viáticos está en Revisión';
     $mail->Body = '
-    <p>Estimado/a ' . $NombreGerente . ',</p>
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="text-align: center; color: #f4a261;">📋 Solicitud en Revisión</h2>
+        
+        <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
+        <p>Tu solicitud de viáticos ha entrado a revisión con la siguiente información:</p>
+        <hr style="border: 1px solid #e9c46a;">
+        <p style="line-height: 1.6;">
+            📅 <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
+            🕒 <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
+            📅 <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
+            🕒 <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
+            📝 <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
+            🔢 <strong>Código:</strong> ' . $Codigo . '<br>
+            📍 <strong>Destino:</strong> ' . $Destino . '<br>
+            💵 <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
+        </p>
+        <hr style="border: 1px solid #e9c46a;">
 
-    <p>El viático de ' . $Nombre_Solicitante . ' ha entrado a Revisón:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
+        <p>Para más detalles y seguimiento de la solicitud, accede al sistema a través del siguiente enlace:</p>
+        <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
 
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
-
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
+        <p>Saludos cordiales,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>';
 
     $mail->AltBody = '
-    
-    El viático de ' . $Nombre_Solicitante . ' ha entrado a Revisión con la siguiente información:
+    Tu solicitud de viáticos ha entrado en Revisión con la siguiente información:
     Fecha de Salida: ' . $Fecha_Salida . '
     Hora de Salida: ' . $Hora_Salida . '
     Fecha de Regreso: ' . $Fecha_Regreso . '
@@ -138,66 +166,21 @@ try {
     Orden de Venta: ' . $Orden_Venta . '
     Código: ' . $Codigo . '
     Destino: ' . $Destino . '
-    ';
-    
-    // Enviar el correo al gerente
-    $mail->send();
+    Monto Total Solicitado: ' . $Total . '
+    Para más detalles, accede al sistema en: https://ingenieria.alenexpenses.com/';
 
-    // Reiniciar las propiedades del correo para el próximo envío
-    $mail->clearAddresses();
-    $mail->clearAttachments();
 
-    // Configurar el correo para el empleado
-    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Tu Solicitud de Viáticos ha entrado a Revisión';
-    $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
-
-    <p>Tu solicitud de viáticos ha entrado a revisión con la siguiente información:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
-
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
-
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
-
-    ';
-
-    $mail->AltBody = '
-    
-    Tu solicitud de viáticos ha entrado a Revisión con la siguiente información:
-    Fecha de Salida: ' . $Fecha_Salida . '
-    Hora de Salida: ' . $Hora_Salida . '
-    Fecha de Regreso: ' . $Fecha_Regreso . '
-    Hora de Regreso: ' . $Hora_Regreso . '
-    Orden de Venta: ' . $Orden_Venta . '
-    Código: ' . $Codigo . '
-    Destino: ' . $Destino .
-    'Monto Total Solicitado: ' . $Total . '
-    ';
-    
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
-    header('Location: /src/Viaticos/SubirEvidencias.php?id=' . $Id_Viatico);
+
     
+    header('Location: /src/Viaticos/SubirEvidencias.php?id=' . $Id_Viatico);
+
+
+
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
-
-
 ?>

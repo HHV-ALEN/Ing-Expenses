@@ -1,4 +1,4 @@
-<?php 
+<?php
 include '../../config/db.php';
 session_start();
 
@@ -81,7 +81,6 @@ echo "Destino: $Destino<br>";
 echo "Total: $Total<br>";
 
 $mail = new PHPMailer(true);
-
 try {
     //Server settings
     $mail->SMTPDebug = 0; //Enable verbose debug output
@@ -100,37 +99,42 @@ try {
 
     // Configurar el correo para el gerente
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente); 
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
     $mail->Subject = 'El Viático de ' . $Nombre_Solicitante . ' ha sido Completado';
+
+    // Configurar el correo para el empleado
+    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
+    $mail->Subject = '✅ ¡Solicitud de Viáticos Completada!';
     $mail->Body = '
-    <p>Estimado/a ' . $NombreGerente . ',</p>
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="text-align: center; color: #2a9d8f;">✅ Solicitud Completada</h2>
+        
+        <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
 
-    <p>El viático de ' . $Nombre_Solicitante . ' ha sido Completado:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
+        <p>Nos complace informarte que tu solicitud de viáticos ha sido completada exitosamente con la siguiente información:</p>
+        <hr>
+        <p style="line-height: 1.6;">
+            📅 <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
+            🕒 <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
+            📅 <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
+            🕒 <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
+            📝 <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
+            🔢 <strong>Código:</strong> ' . $Codigo . '<br>
+            📍 <strong>Destino:</strong> ' . $Destino . '<br>
+            💵 <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
+        </p>
+        <hr>
 
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
+        <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
+        <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
 
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
+        <p>Saludos cordiales,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>';
 
     $mail->AltBody = '
-    
-    El viático de ' . $Nombre_Solicitante . ' ha sido Completado con la siguiente información:
+    Tu solicitud de viáticos ha sido completada con la siguiente información:
     Fecha de Salida: ' . $Fecha_Salida . '
     Hora de Salida: ' . $Hora_Salida . '
     Fecha de Regreso: ' . $Fecha_Regreso . '
@@ -138,66 +142,16 @@ try {
     Orden de Venta: ' . $Orden_Venta . '
     Código: ' . $Codigo . '
     Destino: ' . $Destino . '
-    ';
-    
-    // Enviar el correo al gerente
-    $mail->send();
+    Monto Total Solicitado: ' . $Total . '
+    Para más detalles, accede al sistema en: https://ingenieria.alenexpenses.com/';
 
-    // Reiniciar las propiedades del correo para el próximo envío
-    $mail->clearAddresses();
-    $mail->clearAttachments();
 
-    // Configurar el correo para el empleado
-    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Tu Solicitud de Viáticos ha sido Completado';
-    $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
-
-    <p>Tu solicitud de viáticos ha sido Completado con la siguiente información:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
-
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
-
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
-
-    ';
-
-    $mail->AltBody = '
-    
-    Tu solicitud de viáticos ha sido Completado con la siguiente información:
-    Fecha de Salida: ' . $Fecha_Salida . '
-    Hora de Salida: ' . $Hora_Salida . '
-    Fecha de Regreso: ' . $Fecha_Regreso . '
-    Hora de Regreso: ' . $Hora_Regreso . '
-    Orden de Venta: ' . $Orden_Venta . '
-    Código: ' . $Codigo . '
-    Destino: ' . $Destino .
-    'Monto Total Solicitado: ' . $Total . '
-    ';
-    
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
     header('Location: /src/Viaticos/detalles.php?id=' . $Id_Viatico);
-    
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
-
-
 ?>

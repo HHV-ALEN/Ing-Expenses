@@ -8,9 +8,11 @@ $Tipo_Usuario = $_SESSION['Position'];
 /// Obtener información del reembolso
 
 $Sql_Reembolso = "SELECT * FROM reembolsos WHERE Id = '$Id_Reembolso'";
+
 $result = $conn->query($Sql_Reembolso);
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
+    $Cliente = $row['Cliente'];
     $Solicitante = $row['Solicitante'];
     $Concepto = $row['Concepto'];
     $Monto = $row['Monto'];
@@ -26,18 +28,95 @@ if ($result->num_rows > 0) {
 }
 
 /// Cuantos reembolsos anidados con estado "Abierto" hay
+$ConteoTotalDeReembolsos = 1;
 $ContadorDeReembolsosActivos = 0;
+$ContadorDeReembolsosRechazados = 0;
+$ContadorDeReembolsosAceptados = 0;
+
 $Sql_ReembolsosAnidados = "SELECT * FROM reembolsos_anidados WHERE Id_Reembolso = '$Id_Reembolso'";
 $Result_ReembolsosAnidados = $conn->query($Sql_ReembolsosAnidados);
+
 if ($Result_ReembolsosAnidados->num_rows > 0) {
     while ($row = $Result_ReembolsosAnidados->fetch_assoc()) {
+        $ConteoTotalDeReembolsos++;
         $Estado_anidado = $row['Estado'];
         if ($Estado_anidado == 'Abierto') {
             $ContadorDeReembolsosActivos++;
         }
+        if ($Estado == 'Abierto') {
+            $ContadorDeReembolsosActivos++;
+        }
+        //------------ Cuando todos los Estados Sean Rechazado especificamente enviar directo a Rechazar todo el Reembolso
+        if ($Estado_anidado == 'Rechazado') {
+            $ContadorDeReembolsosRechazados++;
+        }
+        if ($Estado == 'Rechazado') {
+            $ContadorDeReembolsosRechazados++;
+        }
+        if ($Estado_anidado == 'Aceptado') {
+            $ContadorDeReembolsosAceptados++;
+        }
+        if ($Estado == 'Aceptado') {
+            $ContadorDeReembolsosAceptados++;
+        }
     }
 }
-//echo "<br> Hay $ContadorDeReembolsosActivos reembolsos anidados activos";
+
+if ($Estado = $row['Estado'] = !'Completado') {
+    if ($ContadorDeReembolsosRechazados == $ConteoTotalDeReembolsos) {
+        echo "<br>Todos los reembolsos estan rechazados<br>";
+        /// Notificar Que el Reembolso ha sido Rechazado
+        /// Actualizar el estado del reembolso a Cerrado
+        $Sql_UpdateReembolso = "UPDATE reembolsos SET Estado = 'Rechazado' WHERE Id = '$Id_Reembolso'";
+        $Result_UpdateReembolso = $conn->query($Sql_UpdateReembolso);
+        if ($Result_UpdateReembolso == TRUE) {
+            echo "<br> Reembolso Rechazado";
+            /// Cerrar los reembolsos anidados
+            $Sql_UpdateReembolsosAnidados = "UPDATE reembolsos_anidados SET Estado = 'Rechazado' WHERE Id_Reembolso = '$Id_Reembolso'";
+            $Result_UpdateReembolsosAnidados = $conn->query($Sql_UpdateReembolsosAnidados);
+            if ($Result_UpdateReembolsosAnidados == TRUE) {
+                echo "<br> Reembolsos Anidados Rechazados";
+            } else {
+                echo "<br> Error al rechazar los reembolsos anidados";
+            }
+            header("Location: ../../../../resources/Back/Mail/reembolsoRechazado.php?Id=$Id_Reembolso");
+        } else {
+            echo "<br> Error al rechazar el reembolso";
+        }
+    }
+
+    if ($ConteoTotalDeReembolsos == $ContadorDeReembolsosAceptados) {
+        //echo "<br> Todos los reembolsos estan aceptados";
+        /// Notificar Que el Reembolso ha sido Aceptado
+        /// Actualizar el estado del reembolso a Completado
+        $Sql_UpdateReembolso = "UPDATE reembolsos SET Estado = 'Completado' WHERE Id = '$Id_Reembolso'";
+        $Result_UpdateReembolso = $conn->query($Sql_UpdateReembolso);
+        if ($Result_UpdateReembolso == TRUE) {
+            echo "<br> Reembolso Completado";
+            /// Cerrar los reembolsos anidados
+            $Sql_UpdateReembolsosAnidados = "UPDATE reembolsos_anidados SET Estado = 'Completado' WHERE Id_Reembolso = '$Id_Reembolso'";
+            $Result_UpdateReembolsosAnidados = $conn->query($Sql_UpdateReembolsosAnidados);
+            if ($Result_UpdateReembolsosAnidados == TRUE) {
+                echo "<br> Reembolsos Anidados Completados";
+            } else {
+                echo "<br> Error al Completar los reembolsos anidados";
+            }
+            header("Location: ../../../../resources/Back/Mail/reembolsoAceptado.php?Id=$Id_Reembolso");
+        } else {
+            echo "<br> Error al aceptar el reembolso";
+        }
+    }
+}
+/*
+echo "<br> Hay $ContadorDeReembolsosActivos reembolsos anidados activos";
+echo "<br> Hay $ContadorDeReembolsosRechazados reembolsos anidados rechazados";
+echo "<br> Hay $ConteoTotalDeReembolsos reembolsos  en total";
+echo "<br> Hay $ContadorDeReembolsosAceptados reembolsos aceptados";
+}
+else{
+    echo "No hay reembolsos anidados";
+}
+    */
 ?>
 
 <!DOCTYPE html>
@@ -92,30 +171,10 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
     <?php include '../navbar.php'; ?>
     <div class="container my-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="row">
-                    <div class="col-md-6 text-center">
-                        <h5>Reembolso No.: <?php echo $Id_Reembolso; ?></h5>
-                        <a href="../../resources/Back/Reembolsos/DownloadReembolso.php?Id=<?= urlencode($Id_Reembolso) ?>"
-                            class="btn btn-primary w-100">Descargar información del reembolso</a>
-                    </div>
-                    <div class="col-md-6 text-center">
-                        <h5>Reembolsos Activos: <?php echo $ContadorDeReembolsosActivos; ?></h5>
-                        <?php
-                        if($Tipo_Usuario != 'Empleado'){
-                            if ($ContadorDeReembolsosActivos == 0) {
-                                echo "Puedes aceptar el reembolso";
-                                /// boton para ir a completar el estado del reembolso
-                                echo "<a href='../../resources/Back/Reembolsos/Anidados/VerifyReembolso_Anidado.php?Id=$Id_Reembolso&Tipo=Reembolso&Respuesta=Completar' class='btn btn-success w-100'>Completar Reembolsos </a>";
-
-                            } else {
-                                echo "No puedes aceptar el reembolso hasta que los reembolsos anidados esten aceptados";
-                            }
-                        }
-                    
-                        ?>
-
-                    </div>
+            <div class="col-md-12">
+                <div class="text-center">
+                    <a href="../../resources/Back/Reembolsos/DownloadReembolso.php?Id=<?= urlencode($Id_Reembolso) ?>"
+                        class="btn btn-primary w-100">Descargar información del reembolso</a>
                 </div>
             </div>
         </div>
@@ -128,7 +187,7 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="card shadow-sm border-0">
-                        
+
                         <div class="card-header bg-black text-white text-center">
                             <h5>Anidar Al reembolso: <?php echo $Id_Reembolso ?></h5>
                         </div>
@@ -150,28 +209,28 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                         <select class="form-select" id="selectConcepto" name="selectConcepto"
                                             aria-label="Default select example" onchange="mostrarInput()">
                                             <option value="Hospedaje">Hospedaje</option>
-                                        <option value="Vuelos">Vuelos</option>
-                                        <option value="Alimentación">Alimentación</option>
-                                        <option value="Transporte">Transporte</option>
-                                        <option value="Estacionamiento">Estacionamiento</option>
-                                        <option value="Gasolina">Gasolina</option>
-                                        <option value="Casetas">Casetas</option>
-                                        <option value="Levantamiento">Levantamiento</option>
-                                        <option value="Soporte Técnico">Soporte Técnico</option>
-                                        <option value="Servicio">Servicio</option>
-                                        <option value="Puesto en marcha">Puesto en marcha</option>
-                                        <option value="Ejecucion">Ejecución</option>
-                                        <option value="Garantia">Garantía</option>
-                                        <option value="Otro">Otro</option>
+                                            <option value="Vuelos">Vuelos</option>
+                                            <option value="Alimentación">Alimentación</option>
+                                            <option value="Transporte">Transporte</option>
+                                            <option value="Estacionamiento">Estacionamiento</option>
+                                            <option value="Gasolina">Gasolina</option>
+                                            <option value="Casetas">Casetas</option>
+                                            <option value="Levantamiento">Levantamiento</option>
+                                            <option value="Soporte Técnico">Soporte Técnico</option>
+                                            <option value="Servicio">Servicio</option>
+                                            <option value="Puesto en marcha">Puesto en marcha</option>
+                                            <option value="Ejecucion">Ejecución</option>
+                                            <option value="Garantia">Garantía</option>
+                                            <option value="Otro">Otro</option>
                                         </select>
                                         <!-- Input oculto por defecto -->
-                                <div class="col-md-6 text-center" id="inputOtroConcepto"
-                                    style="display: none; margin-top: 10px;">
-                                    <label for="otroConcepto" class="form-label"><strong>Especifica el
-                                            concepto:</strong></label>
-                                    <input type="text" class="form-control" id="otroConcepto" name="Concepto"
-                                        placeholder="Escribe el concepto">
-                                </div>
+                                        <div class="col-md-6 text-center" id="inputOtroConcepto"
+                                            style="display: none; margin-top: 10px;">
+                                            <label for="otroConcepto" class="form-label"><strong>Especifica el
+                                                    concepto:</strong></label>
+                                            <input type="text" class="form-control" id="otroConcepto" name="Concepto"
+                                                placeholder="Escribe el concepto">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -201,24 +260,24 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                     </div>
                                 </div>
                                 <div class="row">
-                                <div class="col-md-6 text-center">
-                                    <label for="Cliente" class="form-label"><strong>Cliente:</strong></label>
-                                    <input type="text" placeholder="Ingrese Nombre del Cliente" class="form-control"
-                                        onkeyup="javascript:this.value = this.value.toUpperCase().replace(/[^A-Z0-9\s]/g, '');"
-                                        id="Cliente" name="Cliente" required>
+                                    <div class="col-md-6 text-center">
+                                        <label for="Cliente" class="form-label"><strong>Cliente:</strong></label>
+                                        <input type="text" placeholder="Ingrese Nombre del Cliente" class="form-control"
+                                            onkeyup="javascript:this.value = this.value.toUpperCase().replace(/[^A-Z0-9\s]/g, '');"
+                                            id="Cliente" name="Cliente" required>
+                                    </div>
+
+
+                                    <div class="col-md-6 text-center">
+                                        <label for="nombreProyecto" class="form-label"><strong>Nombre del
+                                                proyecto:</strong></label>
+                                        <input type="text" placeholder="Ingrese Nombre del proyecto" class="form-control"
+                                            onkeyup="javascript:this.value = this.value.toUpperCase().replace(/[^A-Z0-9\s]/g, '');"
+                                            id="nombreProyecto" name="nombreProyecto" required>
+                                    </div>
                                 </div>
 
-                            
-                                <div class="col-md-6 text-center">
-                                    <label for="nombreProyecto" class="form-label"><strong>Nombre del
-                                            proyecto:</strong></label>
-                                    <input type="text" placeholder="Ingrese Nombre del proyecto" class="form-control"
-                                        onkeyup="javascript:this.value = this.value.toUpperCase().replace(/[^A-Z0-9\s]/g, '');"
-                                        id="nombreProyecto" name="nombreProyecto" required>
-                                </div>
-                            </div>
 
-                                
                                 <!-- Destino y Imagen -->
                                 <div class="row my-4">
                                     <div class="col-md-6 text-center">
@@ -230,7 +289,7 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                         <input type="Text" class="form-control" id="Descripcion" name="Descripcion"
                                             required>
                                     </div>
-                                    
+
                                 </div>
                                 <div class="row my-4">
 
@@ -246,7 +305,8 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                 </div>
                                 <hr>
                                 <div class="col-md-12 text-center">
-                                    <button type="submit" class="btn btn-outline-success w-100">Finalizar Solicitud</button>
+                                    <button type="submit" class="btn btn-outline-success w-100">Registrar Reembolso
+                                        Anidado</button>
                                 </div>
 
                             </form>
@@ -294,12 +354,13 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
 
                         <!-- Columna izquierda: Imagen del reembolso y botones -->
                         <div class="col-md-5 text-center">
-                            <!-- Imagen con la opción de ampliar al hacer clic -->
+                            <!-- Imagen con la opción de ampliar al hacer clic
+                             AKI ES LOKO -->
+
 
                             <strong>Archivo:</strong>
-                            <a href="https://ingenieria.alenexpenses.com/uploads/<?php echo $Evidencia['Nombre_Archivo']; ?>"
-                                target="_blank">
-                                <?php echo $Evidencia['Nombre_Archivo']; ?>
+                            <a href="/uploads/<?php echo $Nombre_Archivo; ?>" target="_blank">
+                                <?php echo $Nombre_Archivo ?>
                             </a>
 
                             <!-- Botón para descargar la imagen -->
@@ -320,20 +381,14 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                             }
                             ?>
                             <div class="row">
-                                <div class="col-md-12 text-center">
-                                    <h6 class="mb-3"><strong>Control:</strong><br><?php echo $Aceptado_Control; ?></h6>
-                                </div>
-                            </div>
-                            <div class="row">
                                 <div class="col-md-6 text-center">
                                     <?php
                                     //echo "Reembolsos Activos: $ContadorDeReembolsosActivos";
+                                    
 
-
-                                    if ($Tipo_Usuario == 'Control') {
+                                    if ($Tipo_Usuario == 'Control' || $Tipo_Usuario == 'Gerente') {
                                         ?>
                                         <div class="col-md-12 text-center">
-
                                             <a href="../../resources/Back/Reembolsos/Anidados/VerifyReembolso_Anidado.php?Id=<?= urlencode($Id_Reembolso) ?>&Tipo=Reembolso&Respuesta=Aceptado"
                                                 class="btn btn-success mt-3 w-100">Aceptar</a>
                                         </div>
@@ -345,7 +400,6 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                     }
                                     ?>
                                 </div>
-
                             </div>
                         </div>
 
@@ -355,24 +409,26 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                 <h6 class="mb-3"><strong>Solicitante:</strong>
                                     <?php echo htmlspecialchars($Solicitante); ?></h6>
                                 <h6 class="mb-3"><strong>Cliente:</strong> <?php echo htmlspecialchars($Cliente); ?>
-                                <h6 class="mb-3"><strong>Concepto:</strong> <?php echo htmlspecialchars($Concepto); ?>
-                                </h6>
-                                <h6 class="mb-3"><strong>Monto:</strong> $<?php echo number_format($Monto, 2); ?></h6>
-                                <h6 class="mb-3"><strong>Destino:</strong> <?php echo htmlspecialchars($Destino); ?>
-                                </h6>
-                                <h6 class="mb-3"><strong>Fecha:</strong> <?php echo htmlspecialchars($Fecha); ?></h6>
-                                <h6 class="mb-3"><strong>Descripción:</strong>
-                                    <?php echo htmlspecialchars($Descripción); ?></h6>
-                                <h6 class="mb-3"><strong>Estado:</strong> <?php echo htmlspecialchars($Estado); ?></h6>
-                                <h6 class="mb-3"><strong>Código:</strong>
-                                    <?php echo htmlspecialchars($Orden_Venta . "-" . $Codigo . "-" . $Nombre_Proyecto); ?>
+                                    <h6 class="mb-3"><strong>Concepto:</strong>
+                                        <?php echo htmlspecialchars($Concepto); ?>
+                                    </h6>
+                                    <h6 class="mb-3"><strong>Monto:</strong> $<?php echo number_format($Monto, 2); ?>
+                                    </h6>
+                                    <h6 class="mb-3"><strong>Destino:</strong> <?php echo htmlspecialchars($Destino); ?>
+                                    </h6>
+                                    <h6 class="mb-3"><strong>Fecha:</strong> <?php echo htmlspecialchars($Fecha); ?>
+                                    </h6>
+                                    <h6 class="mb-3"><strong>Descripción:</strong>
+                                        <?php echo htmlspecialchars($Descripción); ?></h6>
+                                    <h6 class="mb-3"><strong>Estado:</strong> <?php echo htmlspecialchars($Estado); ?>
+                                    </h6>
+                                    <h6 class="mb-3"><strong>Código:</strong>
+                                        <?php echo htmlspecialchars($Orden_Venta . "-" . $Codigo . "-" . $Nombre_Proyecto); ?>
 
                             </div>
                         </div>
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>
@@ -399,9 +455,6 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
             $Nombre_Proyecto = $row['Nombre_Proyecto'];
             $Codigo = $row['Codigo'];
             $Orden_Venta = $row['Orden_Venta'];
-
-
-
             // Incrementar el contador si el reembolso está en estado "Abierto"
             if ($Estado == 'Abierto') {
                 $ContadorDeReembolsosActivos++;
@@ -441,7 +494,6 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                 <!-- Columna izquierda: Imagen del reembolso y botones -->
                                 <div class="col-md-5 text-center">
                                     <!-- Imagen con la opción de ampliar al hacer clic -->
-                                    <!-- Imagen con la opción de ampliar al hacer clic -->
 
                                     <strong>Archivo:</strong>
                                     <a href="/uploads/<?php echo $Nombre_Archivo; ?>" target="_blank">
@@ -467,7 +519,7 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                                 <div class="row">
                                                     <div class="col-md-6 text-center">
                                                         <?php
-                                                        if ($Tipo_Usuario == 'Control') {
+                                                        if ($Tipo_Usuario == 'Control' || $Tipo_Usuario == 'Gerente') {
                                                             ?>
                                                             <div class="row">
                                                                 <div class="col-md-12">
@@ -478,8 +530,6 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                                                     <a href="../../resources/Back/Reembolsos/Anidados/VerifyReembolso_Anidado.php?Id=<?= urlencode($Id_ReembolsoAnidado) ?>&Id_Maestro=<?= urlencode($Id_Reembolso) ?>&Tipo=Reembolso_Anidado&Respuesta=Rechazado"
                                                                         class="btn btn-danger mt-3 w-100">Rechazar</a>
                                                                 </div>
-
-
                                                             </div>
                                                             <?php
                                                         }
@@ -489,53 +539,42 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
                                             </div>
                                             <?php
                                             }
-
                                             ?>
                                     <?php } ?>
                                 </div>
-
                                 <!-- Columna derecha: Información del reembolso -->
                                 <div class="col-md-7">
                                     <div class="ps-3"> <!-- Clase para agregar espacio a la izquierda -->
                                         <h6 class="mb-3"><strong>Solicitante:</strong>
                                             <?php echo htmlspecialchars($Solicitante); ?></h6>
                                         <h6 class="mb-3"><strong>Cliente:</strong> <?php echo htmlspecialchars($Cliente); ?>
-                                        <h6 class="mb-3"><strong>Concepto:</strong> <?php echo htmlspecialchars($Concepto); ?>
-                                        </h6>
-                                        <h6 class="mb-3"><strong>Monto:</strong> $<?php echo number_format($Monto, 2); ?></h6>
-                                        <h6 class="mb-3"><strong>Destino:</strong> <?php echo htmlspecialchars($Destino); ?>
-                                        </h6>
-                                        <h6 class="mb-3"><strong>Fecha:</strong> <?php echo htmlspecialchars($Fecha); ?></h6>
-                                        <h6 class="mb-3"><strong>Descripción:</strong>
-                                            <?php echo htmlspecialchars($Descripción); ?></h6>
-                                        <h6 class="mb-3"><strong>Estado:</strong> <?php echo htmlspecialchars($Estado); ?></h6>
-                                        <h6 class="mb-3"><strong>Código:</strong>
-                                            <?php echo htmlspecialchars($Orden_Venta . "-" . $Codigo . "-" . $Nombre_Proyecto); ?>
-
-
+                                            <h6 class="mb-3"><strong>Concepto:</strong>
+                                                <?php echo htmlspecialchars($Concepto); ?>
+                                            </h6>
+                                            <h6 class="mb-3"><strong>Monto:</strong> $<?php echo number_format($Monto, 2); ?>
+                                            </h6>
+                                            <h6 class="mb-3"><strong>Destino:</strong> <?php echo htmlspecialchars($Destino); ?>
+                                            </h6>
+                                            <h6 class="mb-3"><strong>Fecha:</strong> <?php echo htmlspecialchars($Fecha); ?>
+                                            </h6>
+                                            <h6 class="mb-3"><strong>Descripción:</strong>
+                                                <?php echo htmlspecialchars($Descripción); ?></h6>
+                                            <h6 class="mb-3"><strong>Estado:</strong> <?php echo htmlspecialchars($Estado); ?>
+                                            </h6>
+                                            <h6 class="mb-3"><strong>Código:</strong>
+                                                <?php echo htmlspecialchars($Orden_Venta . "-" . $Codigo . "-" . $Nombre_Proyecto); ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-
-
                     </div>
                 </div>
             </div>
             <?php
         }
     }
-
-
     ?>
-
-
-
-
-
     <br>
-
     <!-- Modal para expandir imagen -->
     <div id="imageModal" class="modal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -546,21 +585,14 @@ if ($Result_ReembolsosAnidados->num_rows > 0) {
             </div>
         </div>
     </div>
-
-
     <!-- Bootstrap JS and dependencies (Popper.js and jQuery) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
-
-
     <script>
         function mostrarInput() {
             var select = document.getElementById("selectConcepto");
             var inputOtro = document.getElementById("inputOtroConcepto");
-
             // Si selecciona "Otro", mostrar el input
             if (select.value === "Otro") {
                 inputOtro.style.display = "block";

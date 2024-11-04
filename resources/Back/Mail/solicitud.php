@@ -111,7 +111,7 @@ try {
     
     <p>Para más detalles y seguimiento de la solicitud, acceda al aplicativo a través del siguiente enlace:</p>
     
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+    <p><a href="https://ingenieria.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
     
     <p>Saludos cordiales,</p>
     <p>El equipo de ALEN</p>';
@@ -161,7 +161,7 @@ try {
     
     <p>Para más detalles y seguimiento de tu solicitud, accede al aplicativo a través del siguiente enlace:</p>
     
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+    <p><a href="https://ingenieria.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
     
     <p>Saludos cordiales,</p>
     <p>El equipo de ALEN</p>';

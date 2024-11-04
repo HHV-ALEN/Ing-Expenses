@@ -1,8 +1,8 @@
-<?php 
+<?php
 include '../../config/db.php';
 session_start();
 
-$Id_Viatico = $_GET['Id_Viatico'];
+$Id_Viatico = $_GET['Id'];
 
 echo "VIATICO DENEGADO <br> Id_Viatico: " . $Id_Viatico;
 
@@ -66,7 +66,7 @@ if ($result) {
 
 // Fecha de hoy
 $Fecha = date('Y-m-d');
-$Nombre_Solicitante = $_SESSION['Name'];
+$Nombre_Solicitante = $Solicitante;
 
 /// Imprimir datos
 echo "<br>Id del viático: $Id_Viatico<br>";
@@ -80,6 +80,7 @@ echo "Nombre del proyecto: $Nombre_Proyecto<br>";
 echo "Destino: $Destino<br>";
 echo "Total: $Total<br>";
 
+echo "<br>Correo del solicitante: $CorreoSolicitante <br>";
 $mail = new PHPMailer(true);
 
 try {
@@ -98,57 +99,43 @@ try {
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
-    // Configurar el correo para el empleado
+    // Reiniciar configuración para enviar al solicitante
+    $mail->clearAddresses();
+    $mail->clearAttachments();
+    $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
+    // Correo al solicitante
     $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Tu Solicitud de Viáticos ha sido Rechazado';
+    $mail->Subject = '❌ Rechazo de Solicitud de Viático';
     $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
+   <div style="font-family: Arial, sans-serif; color: #333;">
+       <h2 style="text-align: center; color: #ED1A0A;">😥 Solicitud de Viático Rechazada</h2>
+       <p>Hola <strong>' . $Nombre_Solicitante . '</strong>,</p>
+       
+       <p>📌 Tu solicitud ha sido Rechazada</p>
+       
+       <table style="width: 100%; border-collapse: collapse;">
+           <tr><td>🗓️ <strong>Fecha de Salida:</strong></td><td>' . $Fecha_Salida . '</td></tr>
+           <tr><td>🗓️ <strong>Fecha de Regreso:</strong></td><td>' . $Fecha_Regreso . '</td></tr>
+           <tr><td>📄 <strong>Orden de Venta:</strong></td><td>' . $Orden_Venta . '</td></tr>
+           <tr><td>🔑 <strong>Código:</strong></td><td>' . $Codigo . '</td></tr>
+           <tr><td>📍 <strong>Destino:</strong></td><td>' . $Destino . '</td></tr>
+           <tr><td>💰 <strong>Monto Total Solicitado:</strong></td><td>' . $Total . '</td></tr>
+       </table>
+      
+       <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #28a745;">Ver detalles en el Sistema de Viáticos</a></p>
+       
+       <p>Saludos,<br>Equipo ALEN</p>
+   </div>';
 
-    <p>Tu solicitud de viáticos ha sido Rechazado:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
+    $mail->AltBody = "Tu solicitud de viáticos ha sido Rechazada: Fecha de Salida: $Fecha_Salida, Hora de Salida: $Hora_Salida, Fecha de Regreso: $Fecha_Regreso, Hora de Regreso: $Hora_Regreso, Orden de Venta: $Orden_Venta, Código: $Codigo, Destino: $Destino, Monto Total Solicitado: $Total.";
 
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
-
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
-
-    ';
-
-    $mail->AltBody = '
-    
-    Tu solicitud de viáticos ha sido Rechazado con la siguiente información:
-    Fecha de Salida: ' . $Fecha_Salida . '
-    Hora de Salida: ' . $Hora_Salida . '
-    Fecha de Regreso: ' . $Fecha_Regreso . '
-    Hora de Regreso: ' . $Hora_Regreso . '
-    Orden de Venta: ' . $Orden_Venta . '
-    Código: ' . $Codigo . '
-    Destino: ' . $Destino .
-    'Monto Total Solicitado: ' . $Total . '
-    ';
-    
-    // Enviar el correo al empleado
+    // Enviar al solicitante
     $mail->send();
-    echo 'Message has been sent';
-    header("Location: /src/Viaticos/detalles.php?id=" . $Id_Viatico);
-    
+    echo 'Correo enviados exitosamente.';
+    header('Location: ../../../../../src/dashboard.php');
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
-
 
 ?>

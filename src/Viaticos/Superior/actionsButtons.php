@@ -24,7 +24,7 @@ switch ($row['Estado']) {
     case 'Completado':
         $Color_Row = "table-success";
         break;
-    case 'En Curso':
+    case 'EnCurso':
         $Color_Row = "table-light";
         break;
     case 'Cerrado':
@@ -50,7 +50,7 @@ if ($row['Estado'] == 'Abierto' && $Tipo_Usuario == 'Empleado') {
     echo "<td class='text-center'><a href='../../resources/Back/Viaticos/DeleteViatico.php?id=" . $row['Id'] . "' class='btn btn-danger'>Eliminar</a></td>";
     echo "<td class='text-center'><a href='editar.php?id=" . $row['Id'] . "' class='btn btn-warning'>Editar</a></td>";
     echo "<td></td>";
-} elseif ($row['Estado'] == 'En Curso' && $Tipo_Usuario == 'Empleado') {
+} elseif ($row['Estado'] == 'EnCurso' && $Tipo_Usuario == 'Empleado') {
     echo "<td class='text-center'><a href='detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>";
     echo "<td class='text-center'><a href='SubirEvidencias.php?id=" . $row['Id'] . "' class='btn btn-success'>Evidenciar</a></td>";
     echo "<td></td>";
@@ -123,7 +123,7 @@ elseif ($row['Estado'] == 'Abierto' && ($Tipo_Usuario == 'Control' || $Tipo_Usua
     <td class='text-center'><a href='/src/Viaticos/detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>
     
     <td></td>";
-} elseif ($row['Estado'] == 'En Curso' && ($Tipo_Usuario == 'Control' || $Tipo_Usuario == 'Gerente')) {
+} elseif ($row['Estado'] == 'EnCurso' && ($Tipo_Usuario == 'Control' || $Tipo_Usuario == 'Gerente')) {
     echo "
     <td class='text-center'><a href='/src/Viaticos/detalles.php?id=" . $row['Id'] . "' class='btn btn-info'>Detalles</a></td>
     <td class='text-center'><a href='/src/Viaticos/SubirEvidencias.php?id=" . $row['Id'] . "' class='btn btn-success'>Evidencias</a></td>
@@ -186,9 +186,5 @@ elseif ($row['Estado'] == "Prórroga"  && ($Tipo_Usuario == 'Control' || $Tipo_U
     echo "<td class='text-center'><a href='/src/Viaticos/SubirEvidencias.php?id=" . $row['Id'] . "' class='btn btn-success'>Evidencias</a></td>";
     echo "<td></td>";
 }
-
-
-
-
 echo "</tr>";
 ?>

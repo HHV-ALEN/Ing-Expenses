@@ -18,22 +18,22 @@ if ($Response == 'SegundaRevisión'){
         echo "<br> Error al actualizar <br>";
     }
 } else {
-/// Se cambiara el estado del viatico a Revisión:
-$Update_Viatico = "UPDATE viaticos SET Estado = 'Revisión' WHERE Id = '$Id_viatico'";
-$Result_Update_Viatico = mysqli_query($conn, $Update_Viatico);
-if($Result_Update_Viatico){
-    echo "<br> Estado del viatico cambiado a Revisión";
-    /// Notificar al solicitante y al gerente de que su viatico se encuentra en revisión
 
-    /// ********* AQUI TIENE QUE IR UNA FUNCION PARA NOTIFIICAR POR WHATSAPP
-    //header("Location: ../../../../../resources/Back/Mail/viaticoEnRevisión.php?Id=$Id_viatico");
-}else{
-    echo "<br> Error al cambiar el estado del viatico a Revisión";
+    /// Se cambiara el estado del viatico a Revisión:
+    $Update_Viatico = "UPDATE viaticos SET Estado = 'Revisión' WHERE Id = '$Id_viatico'";
+    $Result_Update_Viatico = mysqli_query($conn, $Update_Viatico);
+    if($Result_Update_Viatico){
+        echo "<br> Estado del viatico cambiado a Revisión";
+        /// Notificar al solicitante y al gerente de que su viatico se encuentra en revisión
+
+        header("Location: ../../../../../resources/Back/Mail/viaticoEnRevisión.php?Id=$Id_viatico");
+    }else{
+        echo "<br> Error al cambiar el estado del viatico a Revisión";
+    }
+
 }
-
-}
-
-header("Location: ../../../../../src/Viaticos/MisViaticos.php");
+header ('Location: /resources/Back/Mail/viaticoEnRevisión.php?Id_Viatico=' . $Id_viatico);
+//header("Location: ../../../../../src/Viaticos/MisViaticos.php");
 
 
 

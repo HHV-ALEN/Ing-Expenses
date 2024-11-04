@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 include '../../config/db.php';
 session_start();
@@ -97,46 +97,62 @@ try {
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
-    // Configurar el correo para el empleado
+    // Configurar el correo para el Solicitante
+    $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
     $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Tu Solicitud de Viáticos ha entrado a Verificación';
+    $mail->Subject = '🚀 Tu Solicitud de Viáticos ha Iniciado el proceso de Verificación';
     $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
+        <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2 style="text-align: center; color: #007bff;">🌍 Proceso de Verificación en Curso</h2>
+            <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
 
-    <p>Tu solicitud de viáticos ha entrado a verificación:</p>
-    
-    <p>A partir de hoy se tiene un lapso de 3 días habiles para que se suban las evidencias de tu viático, 
-    para que se pueda proceder con la verificación del viático.</p>
-    
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
+            <p>Nos complace informarte que tu solicitud de viáticos ha sido puesta en Verificación. Aquí está la información de tu viaje:</p>
+            
+            <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td>🗓️ <strong>Fecha de Salida:</strong></td><td>' . $Fecha_Salida . '</td></tr>
+                <tr><td>⏰ <strong>Hora de Salida:</strong></td><td>' . $Hora_Salida . '</td></tr>
+                <tr><td>🗓️ <strong>Fecha de Regreso:</strong></td><td>' . $Fecha_Regreso . '</td></tr>
+                <tr><td>⏰ <strong>Hora de Regreso:</strong></td><td>' . $Hora_Regreso . '</td></tr>
+                <tr><td>📄 <strong>Orden de Venta:</strong></td><td>' . $Orden_Venta . '</td></tr>
+                <tr><td>🔑 <strong>Código:</strong></td><td>' . $Codigo . '</td></tr>
+                <tr><td>📍 <strong>Destino:</strong></td><td>' . $Destino . '</td></tr>
+                <tr><td>💰 <strong>Monto Total Solicitado:</strong></td><td>' . $Total . '</td></tr>
+            </table>
 
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
+            <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    ';
+            <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
+
+            <p>Saludos cordiales,</p>
+            <p><em>El equipo de ALEN</em></p>
+        </div>';
 
     $mail->AltBody = '
-    
-    Tu solicitud de viáticos ha entrado a verificación:
-    A partir de hoy se tiene un lapso de 3 días habiles para que sean completadas las verificaciones de evidencias,
-    para que se pueda proceder con la verificación del viático.
-    ';
-    
+    Tu solicitud de viáticos ha iniciado su curso con la siguiente información:
+    Fecha de Salida: ' . $Fecha_Salida . '
+    Hora de Salida: ' . $Hora_Salida . '
+    Fecha de Regreso: ' . $Fecha_Regreso . '
+    Hora de Regreso: ' . $Hora_Regreso . '
+    Orden de Venta: ' . $Orden_Venta . '
+    Código: ' . $Codigo . '
+    Destino: ' . $Destino . '
+    Monto Total Solicitado: ' . $Total . '
+    Para más detalles y seguimiento, accede a: https://ingenieria.alenexpenses.com/';
+
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
-    if($Position == 'Empleado'){
+    if ($Position == 'Empleado') {
         header("Location: /src/Viaticos/MisViaticos.php");
 
-    } elseif ($Position == 'Control'){
+    } elseif ($Position == 'Control') {
         header("Location: /src/Viaticos/Superior/ListadoViaticos.php");
-    } elseif ($Position == 'Gerente'){
+    } elseif ($Position == 'Gerente') {
         header("Location: /src/Viaticos/Superior/Viaticos_AMiCargo.php");
     }
-    
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }

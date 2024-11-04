@@ -65,111 +65,54 @@ try {
 
     // Configurar el correo para el gerente
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente);
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
-    $mail->Subject = 'Evidencias Rechazadas de la Solicitud de ' . $NombreUsuario;
-    $mail->Body = '
-    <p>Estimado/a ' . $NombreGerente . ',</p>
-
-    <p>Se ha realizado una revisión de las evidencias subidas por ' . $NombreUsuario . ' para la solicitud de viáticos y se ha determinado que algunas no son correctas.</p>
-    
-    <hr>
-    <p><strong>Información de la solicitud:</strong></p>
-    <p>
-        <strong>Número de Solicitud:</strong> ' . $Id . '<br>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Cliente:</strong> ' . $Cliente . '<br>
-        <strong>Motivo:</strong> ' . $Motivo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
-    
-    
-    <p>Se requiere que ' . $NombreUsuario . ' vuelva a subir las evidencias correctas dentro del plazo establecido.</p>
-    
-    <p>Para más detalles y seguimiento de la solicitud, acceda al aplicativo a través del siguiente enlace:</p>
-    
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-    
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
-
-    $mail->AltBody = 'Se ha realizado una revisión de las evidencias subidas por ' . $NombreUsuario . ' para la solicitud de viáticos y se ha determinado que algunas no son correctas:
-        Número de Solicitud: ' . $Id . '
-        Fecha de Salida: ' . $Fecha_Salida . '
-        Hora de Salida: ' . $Hora_Salida . '
-        Fecha de Regreso: ' . $Fecha_Regreso . '
-        Hora de Regreso: ' . $Hora_Regreso . '
-        Cliente: ' . $Cliente . '
-        Motivo: ' . $Motivo . '
-        Destino: ' . $Destino . '
-        Monto Total Solicitado: ' . $Total . '
-
-        Se requiere que ' . $NombreUsuario . ' vuelva a subir las evidencias correctas dentro del plazo establecido.
-        Para más detalles y seguimiento de la solicitud, acceda al aplicativo.';
-    // Enviar el correo al gerente
-    $mail->send();
-
-
-    // Reiniciar las propiedades del correo para el próximo envío
-    $mail->clearAddresses();
-    $mail->clearAttachments();
-
-
     $mail->addAddress($CorreoUsuario, $NombreUsuario);
-    $mail->Subject = 'Evidencias Rechazadas de tu Solicitud de Viáticos, ' . $NombreUsuario;
+    $mail->Subject = '🚫 Evidencias Rechazadas de tu Solicitud de Viáticos, ' . $NombreUsuario;
     $mail->Body = '
-        <p>Estimado/a ' . $NombreUsuario . ',</p>
-
-        <p>Tras una revisión de las evidencias subidas para tu solicitud de viáticos, se ha determinado que algunas no son correctas y han sido eliminadas del sistema.</p>
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="color: #e63946;">🚫 Evidencias Rechazadas</h2>
         
-        <hr>
-        <p><strong>Información de la solicitud:</strong></p>
+        <p>Estimado/a <strong>' . $NombreUsuario . '</strong>,</p>
+    
+        <p>Al revisar tu solicitud de viáticos, se encontró que algunas evidencias no son válidas y fueron eliminadas del sistema. Te pedimos que subas las correctas.</p>
+        
+        <hr style="border: 1px solid #f1faee;">
+        <p><strong>Detalles de la solicitud:</strong></p>
         <p>
-            <strong>Número de Solicitud:</strong> ' . $Id . '<br>
-            <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-            <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-            <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-            <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-            <strong>Cliente:</strong> ' . $Cliente . '<br>
-            <strong>Motivo:</strong> ' . $Motivo . '<br>
-            <strong>Destino:</strong> ' . $Destino . '<br>
-            <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
+            🆔 <strong>Solicitud:</strong> ' . $Id . '<br>
+            📅 <strong>Salida:</strong> ' . $Fecha_Salida . ' a las ' . $Hora_Salida . '<br>
+            📅 <strong>Regreso:</strong> ' . $Fecha_Regreso . ' a las ' . $Hora_Regreso . '<br>
+            👤 <strong>Cliente:</strong> ' . $Cliente . '<br>
+            📝 <strong>Motivo:</strong> ' . $Motivo . '<br>
+            📍 <strong>Destino:</strong> ' . $Destino . '<br>
+            💰 <strong>Monto Solicitado:</strong> ' . $Total . '
         </p>
-        <hr>
-        
-        <p>Por favor, vuelve a subir las evidencias correctas dentro del plazo establecido para que podamos continuar con la verificación de tu solicitud.</p>
-        
-        <p>Para más detalles y seguimiento de tu solicitud, accede al aplicativo a través del siguiente enlace:</p>
-        
-        <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-        
-        <p>Saludos cordiales,</p>
-        <p>El equipo de ALEN</p>';
+        <hr style="border: 1px solid #f1faee;">
+    
+        <p>📌 Para más detalles o seguimiento, accede al sistema: <a href="https://ingenieria.alenexpenses.com/" style="color: #1d3557;">Ir al Sistema de Viáticos</a></p>
+    
+        <p>Saludos,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>';
+    
+    $mail->AltBody = 'Evidencias Rechazadas de tu Solicitud de Viáticos:
+    - Solicitud: ' . $Id . '
+    - Salida: ' . $Fecha_Salida . ' a las ' . $Hora_Salida . '
+    - Regreso: ' . $Fecha_Regreso . ' a las ' . $Hora_Regreso . '
+    - Cliente: ' . $Cliente . '
+    - Motivo: ' . $Motivo . '
+    - Destino: ' . $Destino . '
+    - Monto Total Solicitado: ' . $Total . '
+    Algunas evidencias fueron rechazadas. Sube las correctas en el plazo establecido.
+    Accede al sistema para más detalles: https://ingenieria.alenexpenses.com/';
 
-    $mail->AltBody = 'Tras una revisión de las evidencias subidas para tu solicitud de viáticos, se ha determinado que algunas no son correctas y han sido eliminadas del sistema:
-    Número de Solicitud: ' . $Id . '
-    Fecha de Salida: ' . $Fecha_Salida . '
-    Hora de Salida: ' . $Hora_Salida . '
-    Fecha de Regreso: ' . $Fecha_Regreso . '
-    Hora de Regreso: ' . $Hora_Regreso . '
-    Cliente: ' . $Cliente . '
-    Motivo: ' . $Motivo . '
-    Destino: ' . $Destino . '
-    Monto Total Solicitado: ' . $Total . '
-    Las siguientes evidencias han sido rechazadas y eliminadas del sistema:
-    Por favor, vuelve a subir las evidencias correctas dentro del plazo establecido para que podamos continuar con la verificación de tu solicitud.
-    Para más detalles y seguimiento de tu solicitud, accede al aplicativo.';
+    
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
 
-    $sql_return = "UPDATE viaticos SET Estado = 'Verificacion' WHERE Id = $id_viatico";
+    $sql_return = "UPDATE viaticos SET Estado = 'Prorroga' WHERE Id = $id_viatico";
     $conn->query($sql_return);
 
     header('Location: ../../../../src/Users/index.php');

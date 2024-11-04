@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 include '../../config/db.php';
 session_start();
@@ -96,66 +96,45 @@ try {
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
-    // Configurar el correo para el gerente
+    // Configurar el correo para el Solicitante
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente); 
+    $mail->addAddress($CorreoGerente, $NombreGerente);
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
-    $mail->Subject = 'El Viático de ' . $Nombre_Solicitante . ' ha entrado a salida del rango de fechas permitido';
-    $mail->Body = '
-    <p>Estimado/a ' . $NombreGerente . ',</p>
-
-    <p>El viático de ' . $Nombre_Solicitante . ' ha entrado a salido del rango de fechas permito:</p>
-
-    <p> El Rango de fechas permitido para las evidencias del viático de ' . $Nombre_Solicitante . ' ha sido excedido, por favor revisar las evidencias del viático para que se pueda proceder con la aprobación del viático.</p>
-    
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
-
-    $mail->AltBody = '
-    
-    El viático de ' . $Nombre_Solicitante . ' ha salido del rango de fechas permitido:
-    El Rango de fechas permitido para las evidencias del viático de ' . $Nombre_Solicitante . ' ha sido excedido, por favor revisar las evidencias del viático para que se pueda proceder con la aprobación del viático.
-    ';
-    
-    // Enviar el correo al gerente
-    $mail->send();
-
-    // Reiniciar las propiedades del correo para el próximo envío
-    $mail->clearAddresses();
-    $mail->clearAttachments();
-
     // Configurar el correo para el empleado
     $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
-    $mail->Subject = 'Tu Solicitud de Viáticos ha salido del rango de fechas permitido';
+
+    $mail->Subject = '⚠️ Tu Solicitud de Viáticos ha Salido del Rango de Fechas Permitido';
     $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="text-align: center; color: #e63946;">🚫 Fecha de Viático No Permitida</h2>
+        
+        <p>Estimado/a <strong>' . $Nombre_Solicitante . '</strong>,</p>
 
-    <p>Tu solicitud de viáticos ha salido del rango de fechas permitido:</p>
-    
-    <p>El rango de fechas permitido para las evidencias de tu viático ha sido excedido, 
-    comunícate con tu gerente para que se pueda proceder con la aprobación del viático.</p>
+        <p>Queremos informarte que tu solicitud de viáticos ha excedido el rango de fechas permitido para las evidencias:</p>
+        
+        <p style="color: #e63946; font-weight: bold;">
+            ⏳ El rango de fechas permitido ha sido excedido.
+        </p>
+        
+        <p>Por favor, comunícate con tu gerente para que se pueda proceder con la aprobación de tu viático.</p>
+        
+        <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
 
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
-
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
-
-    ';
+        <p>Saludos cordiales,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>';
 
     $mail->AltBody = '
-    El rango de fechas permitido para las evidencias de tu viático ha sido excedido,
-    comunícate con tu gerente para que se pueda proceder con la aprobación del viático.
-    ';
-    
+    Tu solicitud de viáticos ha salido del rango de fechas permitido.
+    Comunícate con tu gerente para que se pueda proceder con la aprobación del viático.
+    Accede al sistema en: https://ingenieria.alenexpenses.com/';
+
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
     header('Location: ../../../../../src/dashboard.php');
-    
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }

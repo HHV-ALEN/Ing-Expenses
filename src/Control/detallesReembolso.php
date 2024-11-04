@@ -361,9 +361,9 @@ $zip_name = "reembolsos_imagenes_" . time() . ".zip"; // Nombre del archivo ZIP
                         <!-- Botón para finalizar folios -->
                         <label><strong>Finalizar solicitud de reembolsos</strong></label><br><hr>
                         <a id="finalizar-btn" class="btn btn-primary" href="../../../../resources/Back/Viaticos/FinalizarReembolso.php" style="display: none;">Finalizar Folio</a>
-                        <button id="finalizar-btn-disabled" class="btn btn-primary" type="button" disabled>Finalizar Folio</button>
+                        <button id="finalizar-btn-disabled" class="btn btn-primary" type="button" >Finalizar Folio</button>
                         
-
+<
                             <script>
                                 document.addEventListener('DOMContentLoaded', function() {
                                 // Seleccionar todos los elementos que contienen el estado de los folios

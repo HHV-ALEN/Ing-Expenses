@@ -79,6 +79,11 @@ elseif ($row['Estado'] == 'Rechazado'){
     echo "<td></td>";
     echo "<td></td>";
 }
+elseif ($row['Estado'] == 'Completado'){
+    echo "<td class='text-center'><a href='../ReembolsoAnidado.php?id=" . $row['Id'] . "' class='btn btn-info'>Ver Detalles</a></td>";
+    echo "<td></td>";
+    echo "<td></td>";
+}
 
 echo "</tr>";
 ?>

@@ -19,7 +19,7 @@ if (mysqli_num_rows($Result) > 0) {
         //echo "<br>--- Nombre del Proyecto: " . $Row['Nombre_Proyecto'];
         //echo "<br>--- Estado: " . $Row['Estado'];
 
-        $SQL_Update = "UPDATE viaticos SET Estado = 'En Curso' WHERE Id = $Id";
+        $SQL_Update = "UPDATE viaticos SET Estado = 'EnCurso' WHERE Id = $Id";
         $Result_Update = mysqli_query($conn, $SQL_Update);
         if ($Result_Update) {
             /// Enviar correo al solicitante para notificar que su viático se encuentra en curso
@@ -37,7 +37,7 @@ if (mysqli_num_rows($Result) > 0) {
 // Cuando un viatico se encuentre en curso y que la fecha de regreso sea igual o menor al día de hoy,
 // Se actualiza a el estado "Verificación"
 
-$SQL = "SELECT * FROM viaticos WHERE Estado = 'En Curso' AND Fecha_Regreso <= CURDATE()";
+$SQL = "SELECT * FROM viaticos WHERE Estado = 'EnCurso' AND Fecha_Regreso <= CURDATE()";
 $Result = mysqli_query($conn, $SQL);
 if (mysqli_num_rows($Result) > 0) {
     //echo "<br>:::: Se encontraron registros con Estado 'En Curso' Y Fecha de Regreso igual o menor al día de hoy ::::<br>";

@@ -48,7 +48,7 @@ if (mysqli_num_rows($result) == 0) {
         <p>Recibimos una solicitud para restablecer tu contraseña. Si no solicitaste esto, puedes ignorar este correo.</p>
 
 
-        <p><a href="https://www.alenexpenses.com//reset-password.php?correo=' . $email . '">Ir al Sistema de Viáticos</a></p>
+        <p><a href="https://ingenieria.alenexpenses.com//reset-password.php?correo=' . $email . '">Ir al Sistema de Viáticos</a></p>
        
         
         <p>Saludos cordiales,</p>

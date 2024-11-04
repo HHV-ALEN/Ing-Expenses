@@ -1,8 +1,8 @@
-<?php 
+<?php
 include '../../config/db.php';
 session_start();
 
-$Id_Viatico = $_GET['Id_Viatico'];
+$Id_Viatico = $_GET['Id'];
 
 echo "VIATICO REVISION <br> Id_Viatico: " . $Id_Viatico;
 
@@ -80,6 +80,7 @@ echo "Nombre del proyecto: $Nombre_Proyecto<br>";
 echo "Destino: $Destino<br>";
 echo "Total: $Total<br>";
 
+
 $mail = new PHPMailer(true);
 
 try {
@@ -100,36 +101,47 @@ try {
 
     // Configurar el correo para el gerente
     $mail->setFrom('alenstore@alenintelligent.com', 'Solicitud de Viaticos');
-    $mail->addAddress($CorreoGerente, $NombreGerente); 
+    
+    $mail->addAddress($CorreoGerente, $NombreGerente);
+    $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
+    $mail->addAddress('pagos@alenintelligent.com', 'Encargado de Pagos');
+    $mail->addAddress('ovalverde@alenintelligent.com', 'Oscar Valverde');
+    $mail->addAddress('mmedina@alenintelligent.com', 'Maria Medina');
+    $mail->addAddress('gdeleon@alenintelligent.com', 'Gerardo De Leon');
+    $mail->addAddress('steal45130@gmail.com', 'Steal (Prueba)');
+
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
-    $mail->Subject = 'El Viático de ' . $Nombre_Solicitante . ' ha sido Aceptado';
+    $mail->Subject = '(PRUEBA.............) ✅ El Viático de ' . $Nombre_Solicitante . ' ha sido Aceptado';
     $mail->Body = '
-    <p>Estimado/a ' . $NombreGerente . ',</p>
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="text-align: center; color: #4CAF50;">🎉 Solicitud de Viáticos Aceptada</h2>
+        <p>Estimado/a <strong>' . $NombreGerente . '</strong>,</p>
 
-    <p>El viático de ' . $Nombre_Solicitante . ' ha sido aceptado con la siguiente información:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
+        <p>La solicitud de viáticos de <strong>' . $Nombre_Solicitante . '</strong> ha sido <strong style="color: #4CAF50;">aceptada</strong> con la siguiente información:</p>
+        
+        <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td>🗓️ <strong>Fecha de Salida:</strong></td><td>' . $Fecha_Salida . '</td></tr>
+            <tr><td>⏰ <strong>Hora de Salida:</strong></td><td>' . $Hora_Salida . '</td></tr>
+            <tr><td>🗓️ <strong>Fecha de Regreso:</strong></td><td>' . $Fecha_Regreso . '</td></tr>
+            <tr><td>⏰ <strong>Hora de Regreso:</strong></td><td>' . $Hora_Regreso . '</td></tr>
+            <tr><td>📄 <strong>Orden de Venta:</strong></td><td>' . $Orden_Venta . '</td></tr>
+            <tr><td>🔑 <strong>Código:</strong></td><td>' . $Codigo . '</td></tr>
+            <tr><td>📍 <strong>Destino:</strong></td><td>' . $Destino . '</td></tr>
+            <tr><td>💰 <strong>Monto Total Solicitado:</strong></td><td>' . $Total . '</td></tr>
+        </table>
 
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+        <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>';
+        <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
+
+        <p>Saludos cordiales,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>';
 
     $mail->AltBody = '
-    
     El viático de ' . $Nombre_Solicitante . ' ha sido aceptado con la siguiente información:
     Fecha de Salida: ' . $Fecha_Salida . '
     Hora de Salida: ' . $Hora_Salida . '
@@ -138,8 +150,10 @@ try {
     Orden de Venta: ' . $Orden_Venta . '
     Código: ' . $Codigo . '
     Destino: ' . $Destino . '
-    ';
-    
+    Monto Total Solicitado: ' . $Total . '
+    Para más detalles y seguimiento, accede a: https://ingenieria.alenexpenses.com/';
+
+
     // Enviar el correo al gerente
     $mail->send();
 
@@ -147,35 +161,36 @@ try {
     $mail->clearAddresses();
     $mail->clearAttachments();
 
-    // Configurar el correo para el empleado
+    // Configurar el correo para el Solicitante
     $mail->addAddress($CorreoSolicitante, $Nombre_Solicitante);
     $mail->Subject = 'Tu Solicitud de Viáticos ha sido Aceptada';
     $mail->Body = '
-    
-    <p>Estimado/a ' . $Nombre_Solicitante . ',</p>
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="text-align: center; color: #4CAF50;">🎉 Solicitud de Viáticos Aceptada</h2>
+        <p>Estimado/a <strong>' . $NombreGerente . '</strong>,</p>
 
-    <p>Tu solicitud de viáticos ha sido aceptada con la siguiente información:</p>
-    <hr>
-    <p>
-        <strong>Fecha de Salida:</strong> ' . $Fecha_Salida . '<br>
-        <strong>Hora de Salida:</strong> ' . $Hora_Salida . '<br>
-        <strong>Fecha de Regreso:</strong> ' . $Fecha_Regreso . '<br>
-        <strong>Hora de Regreso:</strong> ' . $Hora_Regreso . '<br>
-        <strong>Orden De Venta:</strong> ' . $Orden_Venta . '<br>
-        <strong>Codigo:</strong> ' . $Codigo . '<br>
-        <strong>Destino:</strong> ' . $Destino . '<br>
-        <strong>Monto Total Solicitado:</strong> ' . $Total . '<br>
-    </p>
-    <hr>
+        <p>La solicitud de viáticos de <strong>' . $Nombre_Solicitante . '</strong> ha sido <strong style="color: #4CAF50;">aceptada</strong> con la siguiente información:</p>
+        
+        <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p>Para más detalles y seguimiento de la solicitud, accede al aplicativo a través del siguiente enlace:</p>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td>🗓️ <strong>Fecha de Salida:</strong></td><td>' . $Fecha_Salida . '</td></tr>
+            <tr><td>⏰ <strong>Hora de Salida:</strong></td><td>' . $Hora_Salida . '</td></tr>
+            <tr><td>🗓️ <strong>Fecha de Regreso:</strong></td><td>' . $Fecha_Regreso . '</td></tr>
+            <tr><td>⏰ <strong>Hora de Regreso:</strong></td><td>' . $Hora_Regreso . '</td></tr>
+            <tr><td>📄 <strong>Orden de Venta:</strong></td><td>' . $Orden_Venta . '</td></tr>
+            <tr><td>🔑 <strong>Código:</strong></td><td>' . $Codigo . '</td></tr>
+            <tr><td>📍 <strong>Destino:</strong></td><td>' . $Destino . '</td></tr>
+            <tr><td>💰 <strong>Monto Total Solicitado:</strong></td><td>' . $Total . '</td></tr>
+        </table>
 
-    <p><a href="https://www.alenexpenses.com/">Ir al Sistema de Viáticos</a></p>
+        <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-    <p>Saludos cordiales,</p>
-    <p>El equipo de ALEN</p>
+        <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
 
-    ';
+        <p>Saludos cordiales,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>';
 
     $mail->AltBody = '
     
@@ -187,17 +202,65 @@ try {
     Orden de Venta: ' . $Orden_Venta . '
     Código: ' . $Codigo . '
     Destino: ' . $Destino .
-    'Monto Total Solicitado: ' . $Total . '
+        'Monto Total Solicitado: ' . $Total . '
     ';
-    
+
     // Enviar el correo al empleado
     $mail->send();
     echo 'Message has been sent';
-    header('Location: ../../../../../src/dashboard.php');
+
+
+    $mail->clearAddresses();
+    $mail->clearAttachments();
+
+    // Configurar el correo para el encargado de Pagos
+    $mail->addAddress('pagos@alenintelligent.com', 'Encargado de Pagos');
+    $mail->Subject = 'Viático Aceptado';
+    $mail->Body = '
+    <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="text-align: center; color: #4CAF50;">🎉 Solicitud de Viáticos Aceptada</h2>
+        <p>Estimado/a <strong>' . $NombreGerente . '</strong>,</p>
+
+        <p>La solicitud de viáticos de <strong>' . $Nombre_Solicitante . '</strong> ha sido <strong style="color: #4CAF50;">aceptada</strong> con la siguiente información:</p>
+        
+        <hr style="border: 1px solid #ddd; margin: 20px 0;">
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td>🗓️ <strong>Fecha de Salida:</strong></td><td>' . $Fecha_Salida . '</td></tr>
+            <tr><td>⏰ <strong>Hora de Salida:</strong></td><td>' . $Hora_Salida . '</td></tr>
+            <tr><td>🗓️ <strong>Fecha de Regreso:</strong></td><td>' . $Fecha_Regreso . '</td></tr>
+            <tr><td>⏰ <strong>Hora de Regreso:</strong></td><td>' . $Hora_Regreso . '</td></tr>
+            <tr><td>📄 <strong>Orden de Venta:</strong></td><td>' . $Orden_Venta . '</td></tr>
+            <tr><td>🔑 <strong>Código:</strong></td><td>' . $Codigo . '</td></tr>
+            <tr><td>📍 <strong>Destino:</strong></td><td>' . $Destino . '</td></tr>
+            <tr><td>💰 <strong>Monto Total Solicitado:</strong></td><td>' . $Total . '</td></tr>
+        </table>
+
+        <hr style="border: 1px solid #ddd; margin: 20px 0;">
+
+        <p>🔗 <a href="https://ingenieria.alenexpenses.com/" style="color: #007bff; text-decoration: none;">Ir al Sistema de Viáticos</a></p>
+
+        <p>Saludos cordiales,</p>
+        <p><em>El equipo de ALEN</em></p>
+    </div>'; 
+
+    $mail->AltBody = '
     
+    Tu solicitud de viáticos ha sido aceptada con la siguiente información:
+    Fecha de Salida: ' . $Fecha_Salida . '
+    Hora de Salida: ' . $Hora_Salida . '
+    Fecha de Regreso: ' . $Fecha_Regreso . '
+    Hora de Regreso: ' . $Hora_Regreso . '
+    Orden de Venta: ' . $Orden_Venta . '
+    Código: ' . $Codigo . '
+    Destino: ' . $Destino .
+        'Monto Total Solicitado: ' . $Total . '
+    ';
+   
+   
+    //header('Location: ../../../../../src/dashboard.php'); 
+
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }
-
-
 ?>
